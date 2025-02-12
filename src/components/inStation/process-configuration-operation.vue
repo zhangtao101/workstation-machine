@@ -140,7 +140,7 @@ onMounted(() => {
   if (prop.taskCode) {
     tableData.value = prop.datas;
     tableData.value.forEach((item: any) => {
-      item.standardNumBlack = item.actParamValue ?? item.standardNum;
+      item.standardNumBlack = item.actParamValue ?? item.setStandardNum;
     });
   } else {
     init();
@@ -170,6 +170,7 @@ onMounted(() => {
     <vxe-column field="judgeRequirement" min-width="120" title="参数说明"></vxe-column>
     <vxe-column field="minNum" min-width="120" title="参数类型" :edit-render="{name: 'VxeSelect', options: argumentType, immediate: true}"></vxe-column>
     <vxe-column field="standardNum" min-width="120" title="工艺标准" ></vxe-column>
+    <vxe-column field="setStandardNum" min-width="120" title="设置值" v-if="datas && datas.length > 0"></vxe-column>
     <vxe-column
       field="standardNumBlack"
       min-width="120"

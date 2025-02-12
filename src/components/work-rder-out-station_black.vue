@@ -98,7 +98,7 @@ function inquiryTable() {
   homePageLoading.value = true;
   equipmentCode.value = localStorage.equipmentCode
   if (!localStorage.equipmentCode) return;
-  getHomepage(localStorage.equipmentCode).then(({ data }) => {
+  getHomepage(localStorage.equipmentCode, localStorage.lockProductCode ?? '').then(({ data }) => {
       if (data.code == 200) {
         const {
           data: {

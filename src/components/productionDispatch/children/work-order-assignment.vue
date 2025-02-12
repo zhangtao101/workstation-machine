@@ -123,7 +123,7 @@ function queryingDeviceInformation() {
   deviceListLoading.value = true;
   getLineProductCheck({
     worksheetCode: selectRow.value.id,
-    type: 6
+    type: selectRow.value.processType
   }).then(({ data }) => {
     if (data.code == 200) {
       deviceList.value = data.data

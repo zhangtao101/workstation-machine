@@ -11,6 +11,8 @@ import ProcessAcquisitionOperation from '@/components/inStation/process-acquisit
 import EnergyConsumptionCollectionOperation from '@/components/inStation/energy-consumption-collection-operation.vue'
 import ReportForWorkOperation from '@/components/inStation/report-for-work-operation.vue'
 import FeedingOperation from '@/components/inStation/feeding-operation.vue'
+import StorageBin from '@/components/inStation/storage-bin.vue'
+import PressSettingReport from '@/components/inStation/press-setting-report.vue'
 
 const props = defineProps({
   id: {
@@ -45,6 +47,11 @@ const props = defineProps({
     type: String,
     required: false,
     default: ''
+  },
+  zsStatus: {
+    type: Boolean,
+    required: false,
+    default: false
   }
 })
 // 操作详细
@@ -143,6 +150,7 @@ onMounted(() => {
           :opsetDetailId="activeItem"
           :workstationMessage="workstationMessage"
           :sheetMessage="sheetMessage"
+          :zsStatus="zsStatus"
         />
       </template>
       <!-- 领料操作 -->
@@ -166,12 +174,21 @@ onMounted(() => {
       </template>
       <!-- 流转操作 -->
       <template v-if="checkedType == 5">
+        <press-setting-report
+          :id="id"
+          :opsetDetailId="activeItem"
+          :workstationMessage="workstationMessage"
+          :sheetMessage="sheetMessage"
+          :unitMessage="unitMessage"
+          v-if="workstationMessage?.workstationName.includes('成型')"
+        />
         <moving-operation
           :id="id"
           :opsetDetailId="activeItem"
           :workstationMessage="workstationMessage"
           :sheetMessage="sheetMessage"
           :unitMessage="unitMessage"
+          v-else
         />
       </template>
       <!-- 工艺配置操作 -->
@@ -213,9 +230,9 @@ onMounted(() => {
           :unitMessage="unitMessage"
         />
       </template>
-      <!-- 报工操作 -->
+      <!--  料仓查看 -->
       <template v-if="checkedType == 99">
-        <report-for-work-operation
+        <storage-bin
           :id="id"
           :checkedTypeName="processName"
           :opsetDetailId="activeItem"

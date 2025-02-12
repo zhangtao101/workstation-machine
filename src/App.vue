@@ -143,6 +143,30 @@ onMounted(() => {
       title: '出库'
     });
   }
+  else if (equipmentName?.includes('制浆')) {
+    items.value.push({
+      key: 'materialMovement',
+      icon: () => h(MailOutlined),
+      label: '浆料移动',
+      title: '浆料移动'
+    });
+  }
+  else if (equipmentName?.includes('制釉')) {
+    items.value.push({
+      key: 'materialMovement',
+      icon: () => h(MailOutlined),
+      label: '釉料移动',
+      title: '釉料移动'
+    });
+  }
+  else if (equipmentName?.includes('制粉')) {
+    items.value.push({
+      key: 'warehouse',
+      icon: () => h(MailOutlined),
+      label: '料仓库存查看',
+      title: '料仓库存查看'
+    });
+  }
   message.config({
     maxCount: 3,
     duration: 12,

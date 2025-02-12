@@ -82,6 +82,16 @@ const router = createRouter({
       path: '/firing',
       name: 'firing',
       component: () => import('../views/firing-view.vue')
+    },
+    {
+      path: '/materialMovement',
+      name: 'materialMovement',
+      component: () => import('../views/material-movement-view.vue')
+    },
+    {
+      path: '/warehouse',
+      name: 'warehouse',
+      component: () => import('../views/warehouse-view.vue')
     }
     /*{
       path: '/about',

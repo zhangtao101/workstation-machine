@@ -4,7 +4,7 @@ import { onMounted, ref } from 'vue'
 import {
   getBomMaterialListByCode,
   getMaterialCodeList,
-  getWarehouseCodeList,
+  getWarehouseCodeList, getZFBomMaterialListByCode,
   smkFeedCheck, smkFeedDBSave, smkFeedFXSave,
   smkFeedSave, smkFeedSYSave, smkFeedZFSave,
   smkFeedZs, smkFeedZSSave, smkFeedZYSave
@@ -29,6 +29,11 @@ const prop = defineProps({
     type: Object,
     required: false,
     default: {} as any
+  },
+  zsStatus: {
+    type: Boolean,
+    required: false,
+    default: false
   }
 });
 
@@ -66,7 +71,7 @@ function submit(type: 0 | 1) {
     message.error('请先添加物料');
     return;
   }
-  let ob;
+  let ob: any;
   if (type === 1) {
     if (prop.workstationMessage?.workstationName.includes('制浆')) {
       ob =  smkFeedSave(params);
@@ -112,7 +117,7 @@ function submit(type: 0 | 1) {
 
       })
     }
-  }).catch((err) => {
+  }).catch((err: any) => {
     message.error({
       content: `操作失败请联系管理员,${err.message ? err.message : err}`,
 
@@ -146,7 +151,7 @@ function showFeed(row?: any) {
       warehouseCodeList.value = [];
       row.batchCodes.forEach((item: any) => {
         warehouseCodeList.value.push({
-          label: `${item.warehouseCode}(${item.stockQuality})`,
+          label: `${item.warehouseCode}(${item.stockQuality})__${item.remake}`,
           value: `${item.warehouseCode}&&${item.stockQuality}`
         })
       });
@@ -442,7 +447,13 @@ function init() {
     tableData.value = JSON.parse(data);
   } else {
     loading.value = true;
-    getBomMaterialListByCode(prop.workstationMessage?.workstationCode).then(({ data: {code, data, msg} }: any) => {
+    let ob: any;
+    if (prop.workstationMessage?.workstationName.includes('制粉') ) {
+      ob = getZFBomMaterialListByCode(prop.workstationMessage?.workstationCode, prop.sheetMessage?.workSheetCode)
+    } else {
+      ob = getBomMaterialListByCode(prop.workstationMessage?.workstationCode, prop.sheetMessage?.workSheetCode)
+    }
+    ob.then(({ data: {code, data, msg} }: any) => {
       if (code == 200) {
         const arr: any[] = [];
         data.forEach((item: any) =>{
@@ -496,7 +507,7 @@ onMounted(() => {
           type="primary"
           @click="submit(1)"
           :loading="submitLoading"
-          :disabled="( workstationMessage?.workstationName.includes('制浆') ) && miscellaneousIncome"
+          :disabled="( workstationMessage?.workstationName.includes('制浆') ) && miscellaneousIncome && !zsStatus"
         >
 <!--          :disabled="( workstationMessage?.workstationName.includes('制浆') || workstationMessage?.workstationName.includes('制色') ) && miscellaneousIncome"-->
           投料
@@ -504,7 +515,7 @@ onMounted(() => {
         <a-button
           type="primary"
           @click="submit(0)"
-          :disabled="!miscellaneousIncome"
+          :disabled="!miscellaneousIncome || zsStatus"
           :loading="miscellaneousIncomeLoading"
           v-if="workstationMessage?.workstationName.includes('制浆')">
           <!--        :disabled="!miscellaneousIncome"-->

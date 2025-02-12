@@ -5,8 +5,8 @@ import * as qs from 'qs'
 /**
  * 获取机台汇总详情
  */
-export function getHomepage(workstationCode: string) {
-  return axios.get(`${BASE_URL}interaction/work/getHomepage?workstationCode=${workstationCode}`)
+export function getHomepage(workstationCode: string, worksheetCode: string = '') {
+  return axios.get(`${BASE_URL}interaction/work/getHomepage?workstationCode=${workstationCode}&worksheetCode=${worksheetCode}`)
 }
 
 /**

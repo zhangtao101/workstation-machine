@@ -132,20 +132,23 @@ onMounted(() => {
 </script>
 
 <template>
-<div id="target-element" :class="{
-        switch_button: true,
-        hidden: isHidden
-      }"
-     @click="fnSwitchingStates"
->
-  <a-tooltip title="切换状态">
-    <a-button type="primary" size="large" @click="open = true;" :loading="productListLoading">
-      <template #icon>
-        <SwapOutlined />
-      </template>
-    </a-button>
-  </a-tooltip>
-</div>
+  <a-button type="primary" @click="open = true;" :loading="productListLoading" style="margin-left: 1em;">
+    工单切换
+  </a-button>
+<!--  <div id="target-element" :class="{
+          switch_button: true,
+          hidden: isHidden
+        }"
+       @click="fnSwitchingStates"
+  >
+    <a-tooltip title="切换状态">
+      <a-button type="primary" size="large" @click="open = true;" :loading="productListLoading">
+        <template #icon>
+          <SwapOutlined />
+        </template>
+      </a-button>
+    </a-tooltip>
+  </div>-->
 
   <a-drawer
     v-model:open="open"

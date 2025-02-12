@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 import { onMounted, ref } from 'vue'
-import { getEquipCodeListByType, processRecordReport } from '@/services/in-station.service'
+import { getEquipCodeListByType, getProcessRecordByParam, processRecordReport } from '@/services/in-station.service'
 import { message } from 'ant-design-vue'
 
 const prop = defineProps({
@@ -49,13 +49,9 @@ function processOperation(type: number) {
         if (type === 1) {
           formState.value.batchCode = data;
           notEdit.value = true;
-          localStorage.setItem(`notEditt_course${prop.opsetDetailId}`, '1');
-          localStorage.setItem(`formData${prop.opsetDetailId}`, JSON.stringify(formState.value));
         } else {
           formState.value = {};
           notEdit.value = false;
-          localStorage.removeItem(`notEditt_course${prop.opsetDetailId}`);
-          localStorage.removeItem(`formData${prop.opsetDetailId}`);
         }
 
       } else {
@@ -99,14 +95,22 @@ function getTargetDevice() {
 
 // endregion
 
-
+/**
+ * 查询最新的操作记录
+ */
+function queryLog() {
+  getProcessRecordByParam(prop.sheetMessage?.workSheetCode, prop.id).then(({ data: {code, data, msg} }: any) => {
+    if (code == 200) {
+      if (!data.endTime) {
+        formState.value = data;
+        notEdit.value = true;
+      }
+    }
+  })
+}
 onMounted(() => {
   getTargetDevice();
-  notEdit.value = localStorage.getItem(`notEditt_course${prop.opsetDetailId}`) === '1';
-  if (localStorage.getItem(`formData${prop.opsetDetailId}`)) {
-    console.log(JSON.parse(localStorage.getItem(`formData${prop.opsetDetailId}`) as string))
-    formState.value = JSON.parse(localStorage.getItem(`formData${prop.opsetDetailId}`) as string);
-  }
+  queryLog();
 });
 
 </script>

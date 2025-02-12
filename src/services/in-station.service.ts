@@ -13,9 +13,19 @@ export function processRecordReport(params: any) {
 /**
  * 查询BOM列表
  * @param equipCode 参数
+ * @param worksheetCode 参数
  */
-export function getBomMaterialListByCode(equipCode: any) {
-  return axios.get(`${BASE_URL}human/patch/getBomMaterialListByCode?equipCode=${equipCode}`)
+export function getBomMaterialListByCode(equipCode: any, worksheetCode: string = '') {
+  return axios.get(`${BASE_URL}human/patch/getBomMaterialListByCode?equipCode=${equipCode}&worksheetCode=${worksheetCode}`)
+}
+
+/**
+ * 查询BOM列表(制粉专用)
+ * @param equipCode 参数
+ * @param worksheetCode 参数
+ */
+export function getZFBomMaterialListByCode(equipCode: any, worksheetCode: string = '') {
+  return axios.get(`${BASE_URL}human/patch/getZFBomMaterialListByCode?equipCode=${equipCode}&worksheetCode=${worksheetCode}`)
 }
 // region 领料
 /**
@@ -31,7 +41,7 @@ export function getBatchListByWorksheetCode(worksheetCode: any) {
  * @param params 参数
  */
 export function getMaterials(params: any) {
-  return axios.post(`${BASE_URL}workstation/op/materialApply`, params)
+  return axios.post(`${BASE_URL}workstation/op/materialPGApply`, params)
 }
 /**
  * 领料
@@ -179,6 +189,27 @@ export function getMaterialCodeList(materialCode: any) {
 export function turnRecordReport(params: any) {
   return axios.post(`${BASE_URL}workstation/op/turnRecordReport`, params)
 }
+/**
+ * 压机设置上报
+ * @param params 参数
+ */
+export function lcMaterialSetReport(params: any) {
+  return axios.post(`${BASE_URL}workstation/op/lcMaterialSetReport`, params)
+}
+/**
+ * 获取料号
+ * @param params 参数
+ */
+export function getCxMaterialListByWorksheetCode(params: any) {
+  return axios.get(`${BASE_URL}workstation/op/getCxMaterialListByWorksheetCode?${qs.stringify(params)}`)
+}
+/**
+ * 获取上报历史记录
+ * @param params 参数
+ */
+export function getLcHistory(params: any) {
+  return axios.get(`${BASE_URL}workstation/op/getLcHistory?${qs.stringify(params)}`)
+}
 
 // endregion
 
@@ -209,8 +240,52 @@ export function getLastEquipCodeList(worksheetCode: any, bindingId: any) {
   return axios.get(`${BASE_URL}workstation/op/getLastEquipCodeList?worksheetCode=${worksheetCode}&bindingId=${bindingId}`)
 }
 /**
+ * 来源设备获取接口
+ */
+export function getLyEquipCodeList(params: any) {
+  return axios.get(`${BASE_URL}workstation/op/getLyEquipCodeList?${qs.stringify(params)}`)
+}
+/**
  * 目标设备获取接口
  */
 export function getEquipCodeListByType(worksheetCode: any, bindingId: any, type: number) {
   return axios.get(`${BASE_URL}workstation/op/getEquipCodeListByType?worksheetCode=${worksheetCode}&bindingId=${bindingId}&type=${type}`)
+}
+/**
+ * 获取流转操作的最新记录
+ */
+export function getTurnRecordByParam(worksheetCode: any, bindingId: any) {
+  return axios.get(`${BASE_URL}workstation/op/getTurnRecordByParam?worksheetCode=${worksheetCode}&bindingId=${bindingId}`)
+}
+/**
+ * 获取流转操作的最新记录
+ */
+export function getProcessRecordByParam(worksheetCode: any, bindingId: any) {
+  return axios.get(`${BASE_URL}workstation/op/getProcessRecordByParam?worksheetCode=${worksheetCode}&bindingId=${bindingId}`)
+}
+/**
+ * 获取釉料移动设备
+ */
+export function getYlzyWarehouseCodeList(workstationCode: any) {
+  return axios.get(`${BASE_URL}workstation/op/getYlzyWarehouseCodeList?workstationCode=${workstationCode}&areaCode=`)
+}
+/**
+ * 釉料移动
+ */
+export function turnMaterialRecordReport(params: any) {
+  return axios.post(`${BASE_URL}workstation/op/turnMaterialRecordReport`, params)
+}
+/**
+ * 获取物料库存信息
+ */
+export function getWarehouseListByStationCode(workstationCode: string) {
+  return axios.get(`${BASE_URL}workstation/op/getWarehouseListByStationCode?workstationCode=${workstationCode}`)
+}
+
+/**
+ * 获取物料库存信息
+ */
+export function getAllLCWarehouseList(areaCode: string) {
+  // https://v507z46671.yicp.fun/mes-main/workstation/op/getAllLCWarehouseList
+  return axios.get(`${BASE_URL}workstation/op/getAllLCWarehouseList?areaCode=${areaCode}`)
 }

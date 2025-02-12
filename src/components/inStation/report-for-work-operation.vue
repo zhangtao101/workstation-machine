@@ -175,6 +175,9 @@ function addLine(type: number, item?: any) {
         reportNumber: 0,
         qualityNumber: 0,
         unqualityNumber: 0,
+        reportNumber_T: 0,
+        qualityNumber_T: 0,
+        unqualityNumber_T: 0,
         personTime: 0,
         reportUser: '',
       });
@@ -204,6 +207,9 @@ const squareCoefficient =  ref(1);
  * @param type 输入类型
  */
 function numberChange(item: any, type: number){
+  item.reportNumber = item.reportNumber || 0;
+  item.qualityNumber = item.qualityNumber || 0;
+  item.unqualityNumber = item.unqualityNumber || 0;
   switch(type) {
     case 1:
       /*// 良品数量不能大于报工数量
@@ -234,8 +240,8 @@ function numberChange(item: any, type: number){
       if (item.reportNumber_T >= 0 && item.qualityNumber_T >= 0) {
         item.unqualityNumber_T = item.reportNumber_T - item.qualityNumber_T;
       }*/
-
-      item.reportNumber_T = (item.qualityNumber_T + item.unqualityNumber_T).toFixed(3);
+      console.log(item)
+      item.reportNumber_T = (item.qualityNumber_T * 1 + item.unqualityNumber_T * 1).toFixed(3);
       if (prop.unitMessage === 'KG') {
         item.qualityNumber = item.qualityNumber_T * 1000;
         item.reportNumber = item.reportNumber_T * 1000;
@@ -673,38 +679,6 @@ onMounted(() => {
             </a-col>
             <a-col :span="6">
               <a-form-item
-                label="报工数量"
-                :name="['details', index, 'personDetails', i, 'reportNumber']"
-                :rules="[{ required: true, message: '该项为必填项!' }]"
-              >
-                <a-input-number
-                  :min="0"
-                  v-model:value="detail.reportNumber"
-                  placeholder="报工数量"
-                  :addon-after="unitMessage"
-                  @Change="numberChange(detail, 1)"
-                ></a-input-number>
-                <a-input-number
-                  v-model:value="detail.reportNumber_T"
-                  placeholder="报工数量"
-                  addon-after="T"
-                  :min="0"
-                  v-if="unitMessage === 'KG'"
-                  style="margin-top: 1em;"
-                  @Change="numberChange(detail, 2)"
-                />
-                <a-input-number
-                  v-model:value="detail.reportNumber_pf"
-                  addon-after="㎡"
-                  :min="0"
-                  v-if="unitMessage === '片'"
-                  style="margin-top: 1em;"
-                  readonly
-                />
-              </a-form-item>
-            </a-col>
-            <a-col :span="6">
-              <a-form-item
                 label="良品数量"
                 :name="['details', index, 'personDetails', i, 'qualityNumber']"
                 :rules="[{ required: true, message: '该项为必填项!' }]"
@@ -746,32 +720,53 @@ onMounted(() => {
                   placeholder="废品数量"
                   :addon-after="unitMessage"
                   :min="0"
-                  @change="() => {
-                    // 设置不良最大值为报工数量 - 良品数量
-                    if (detail.unqualityNumber > detail.reportNumber - detail.qualityNumber) {
-                      detail.unqualityNumber = detail.reportNumber - detail.qualityNumber
-                    }
-                    detail.unqualityNumber_T = (detail.unqualityNumber / 1000).toFixed(3);
-                    detail.unqualityNumber_pf = (detail.unqualityNumber * squareCoefficient).toFixed(3);
-                  }"
+                  @change="numberChange(detail, 1)"
                 ></a-input-number>
                 <a-input-number
                   v-model:value="detail.unqualityNumber_T"
-                  placeholder="良品数量"
+                  placeholder="废品数量"
                   addon-after="T"
                   :min="0"
                   v-if="unitMessage === 'KG'"
                   style="margin-top: 1em;"
-                  @change="() => {
-                    // 设置不良最大值为报工数量 - 良品数量
-                    if (detail.unqualityNumber_T > detail.reportNumber_T - detail.qualityNumber_T) {
-                      detail.unqualityNumber_T = (detail.reportNumber_T - detail.qualityNumber_T).toFixed(3)
-                    }
-                    detail.unqualityNumber = (detail.unqualityNumber_T * 1000).toFixed(3);
-                  }"
+                  @change="numberChange(detail, 2)"
                 />
                 <a-input-number
                   v-model:value="detail.unqualityNumber_pf"
+                  addon-after="㎡"
+                  :min="0"
+                  v-if="unitMessage === '片'"
+                  style="margin-top: 1em;"
+                  readonly
+                />
+              </a-form-item>
+            </a-col>
+            <a-col :span="6">
+              <a-form-item
+                label="报工数量"
+                :name="['details', index, 'personDetails', i, 'reportNumber']"
+                :rules="[{ required: true, message: '该项为必填项!' }]"
+              >
+                <a-input-number
+                  :min="0"
+                  v-model:value="detail.reportNumber"
+                  placeholder="报工数量"
+                  :addon-after="unitMessage"
+                  @Change="numberChange(detail, 1)"
+                  readonly
+                ></a-input-number>
+                <a-input-number
+                  v-model:value="detail.reportNumber_T"
+                  placeholder="报工数量"
+                  addon-after="T"
+                  :min="0"
+                  v-if="unitMessage === 'KG'"
+                  style="margin-top: 1em;"
+                  @Change="numberChange(detail, 2)"
+                  readonly
+                />
+                <a-input-number
+                  v-model:value="detail.reportNumber_pf"
                   addon-after="㎡"
                   :min="0"
                   v-if="unitMessage === '片'"

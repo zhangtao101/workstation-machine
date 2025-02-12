@@ -38,6 +38,13 @@ export function getReportToDoList(params: any) {
   return axios.get(`${BASE_URL}workstation/op/getReportToDoList?${qs.stringify(params)}`)
 }
 /**
+ * 获取料仓视图
+ * @param params
+ */
+export function getLCWarehouseList(params: any) {
+  return axios.get(`${BASE_URL}workstation/op/getLCWarehouseList?${qs.stringify(params)}`)
+}
+/**
  * 工艺参数上传
  * @param params
  */

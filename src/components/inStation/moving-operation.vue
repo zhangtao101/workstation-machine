@@ -2,7 +2,12 @@
 
 import { onMounted, ref } from 'vue'
 import { message } from 'ant-design-vue'
-import { getEquipCodeListByType, getLastEquipCodeList, turnRecordReport } from '@/services/in-station.service'
+import {
+  getEquipCodeListByType,
+  getLastEquipCodeList,
+  getTurnRecordByParam,
+  turnRecordReport
+} from '@/services/in-station.service'
 
 const prop = defineProps({
   id: {
@@ -58,13 +63,9 @@ function submit() {
       if (opType.value === 1) {
         formData.value.batchCode = data;
         notEdit.value = true;
-        localStorage.setItem(`notEditt_urnover${prop.opsetDetailId}`, '1');
-        localStorage.setItem(`formData${prop.opsetDetailId}`, JSON.stringify(formData.value));
       } else {
         formData.value = {};
         notEdit.value = false;
-        localStorage.removeItem(`notEditt_urnover${prop.opsetDetailId}`);
-        localStorage.removeItem(`formData${prop.opsetDetailId}`);
       }
 
     } else {
@@ -122,15 +123,25 @@ function getTargetDevice() {
 
 // region 初始化
 
+/**
+ * 查询最新的操作记录
+ */
+function queryLog() {
+  getTurnRecordByParam(prop.sheetMessage?.workSheetCode, prop.id).then(({ data: {code, data, msg} }: any) => {
+    if (code == 200) {
+      if (!data.endTime) {
+        formData.value = data;
+        formData.value.turnNumber_T = formData.value.turnNumber / 1000;
+        notEdit.value = true;
+      }
+    }
+  })
+}
+
 onMounted(() => {
-  console.log(prop.opsetDetailId);
   querySourceDevice();
   getTargetDevice();
-  notEdit.value = localStorage.getItem(`notEditt_urnover${prop.opsetDetailId}`) === '1';
-  if (localStorage.getItem(`formData${prop.opsetDetailId}`)) {
-    console.log(JSON.parse(localStorage.getItem(`formData${prop.opsetDetailId}`) as string))
-    formData.value = JSON.parse(localStorage.getItem(`formData${prop.opsetDetailId}`) as string);
-  }
+  queryLog();
 })
 
 // endregion

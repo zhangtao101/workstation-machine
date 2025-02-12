@@ -22,7 +22,7 @@ const homePageLoading = ref(false);
  */
 function inquiryTable() {
   homePageLoading.value = true;
-  getHomepage(localStorage.equipmentCode).then(({ data }) => {
+  getHomepage(localStorage.equipmentCode, localStorage.lockProductCode ?? '').then(({ data }) => {
     if (data.code == 200) {
       const {
         data: {

@@ -5,6 +5,7 @@ import { getHomepage, humanLogin, humanLogout } from '@/services/machine-summary
 import { message } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
 import Detail from '@/components/inStation/detail.vue'
+import WorkOrderSwitching from '@/components/inStation/work-order-switching.vue'
 
 // region 用户操作
 
@@ -84,12 +85,14 @@ const workstationMessage = ref({} as any)
 const unitMessage = ref('')
 // 加载状态
 const homePageLoading = ref(false);
+// 杂收
+const zsStatus = ref(false);
 /**
  * 查询机台汇总信息
  */
 function inquiryTable() {
   homePageLoading.value = true;
-  getHomepage(localStorage.equipmentCode).then(({ data }) => {
+  getHomepage(localStorage.equipmentCode, localStorage.lockProductCode ?? '').then(({ data }) => {
     if (data.code == 200) {
       const {
         data: {
@@ -101,6 +104,7 @@ function inquiryTable() {
           totalQualityNumber,
           workstationSetRecord,
           unit,
+          zsFlag
         }
       } = data
       userMessage.value = {
@@ -116,6 +120,7 @@ function inquiryTable() {
       equipMessage.value = equipStatusDTOs
       sheetMessage.value = sheetStatusDTOs[0]
       workstationMessage.value = workstationSetRecord
+      zsStatus.value = zsFlag
       unitMessage.value = unit
     } else {
       message.error({
@@ -162,6 +167,8 @@ onMounted(() => {
             <a-button v-if="workstationMessage" type="primary" @click="workStationChange">
               工作站切换
             </a-button>
+            <work-order-switching :workstationMessage="workstationMessage" v-if="workstationMessage"/>
+
             <a-button v-if="!loginUser" style="position:absolute; right: 1em;" type="primary" @click="loginOpen = true;userName = ''">
               人员切换
             </a-button>
@@ -215,6 +222,7 @@ onMounted(() => {
                 :sheetMessage="sheetMessage"
                 :workstationMessage="workstationMessage"
                 :unitMessage="unitMessage"
+                :zsStatus="zsStatus"
               />
             </a-tab-pane>
           </a-tabs>
@@ -234,8 +242,6 @@ onMounted(() => {
         <a-input v-model:value="userName" style="width: 70%" />
       </label>
     </a-modal>
-<!--  工单切换不需要了  -->
-<!--    <work-order-switching :workstationMessage="workstationMessage" v-if="workstationMessage"/>-->
   </div>
 </template>
 
