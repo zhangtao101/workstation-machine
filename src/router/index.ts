@@ -92,6 +92,11 @@ const router = createRouter({
       path: '/warehouse',
       name: 'warehouse',
       component: () => import('../views/warehouse-view.vue')
+    },
+    {
+      path: '/color',
+      name: 'color',
+      component: () => import('../views/color-view.vue')
     }
     /*{
       path: '/about',

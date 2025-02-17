@@ -82,6 +82,8 @@ const equipMessage = ref({} as any)
 const sheetMessage = ref({} as any)
 // 工作站信息
 const workstationMessage = ref({} as any)
+// 单位
+const unitMessage = ref('')
 // 产品选项
 const productOptions = ref<any>([]);
 // 工作台
@@ -106,7 +108,8 @@ function inquiryTable() {
             totalNumber,
             totalDefectNumber,
             totalQualityNumber,
-            workstationSetRecord
+            workstationSetRecord,
+            unit,
           }
         } = data
         userMessage.value = {
@@ -122,6 +125,7 @@ function inquiryTable() {
         equipMessage.value = equipStatusDTOs
         sheetMessage.value = sheetStatusDTOs[0]
         workstationMessage.value = workstationSetRecord
+        unitMessage.value = unit
         productOptions.value = [];
         if (workstationMessage.value.workstationName.includes('抛光')) {
           getProductByWorksheetAndBindingId({
@@ -295,9 +299,12 @@ onMounted(() => {
         <div v-if="sheetMessage && sheetMessage.workSheetCode">
 
           <div class="work_order_information">
-            <a-descriptions>
+            <a-descriptions :column="4">
               <a-descriptions-item :span="1" label="工单号">
                 {{ sheetMessage ? sheetMessage.workSheetCode : ''}}
+              </a-descriptions-item>
+              <a-descriptions-item :span="1" label="计划数量">
+                {{ sheetMessage ? sheetMessage.workPlanNumber + unitMessage : ''}}
               </a-descriptions-item>
               <a-descriptions-item :span="1" label="产品名称">
                 {{ sheetMessage ? sheetMessage.productName : ''}}

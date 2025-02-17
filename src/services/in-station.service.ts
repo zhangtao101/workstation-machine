@@ -283,9 +283,17 @@ export function getWarehouseListByStationCode(workstationCode: string) {
 }
 
 /**
- * 获取物料库存信息
+ * 获取物料库存信息(粉料)
  */
 export function getAllLCWarehouseList(areaCode: string) {
   // https://v507z46671.yicp.fun/mes-main/workstation/op/getAllLCWarehouseList
   return axios.get(`${BASE_URL}workstation/op/getAllLCWarehouseList?areaCode=${areaCode}`)
+}
+
+/**
+ * 获取物料库存信息(色料)
+ */
+export function getAllSjWarehouseList(params: any) {
+  // https://v507z46671.yicp.fun/mes-main/workstation/op/getAllSjWarehouseList
+  return axios.get(`${BASE_URL}workstation/op/getAllSjWarehouseList?${qs.stringify(params)}`)
 }

@@ -113,6 +113,7 @@ function submitSourceOfEnergy() {
       ...sourceOfEnergyFormState.value,
       fileId: fileId,
       catchUser: localStorage.username,
+      workstationCode: localStorage.equipmentCode,
     }).then(({ data: {code, data, msg} }: any) => {
       if (code == 200) {
         message.success(`操作成功!`);

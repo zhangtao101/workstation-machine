@@ -167,6 +167,14 @@ onMounted(() => {
       title: '料仓库存查看'
     });
   }
+  else if (equipmentName?.includes('制色')) {
+    items.value.push({
+      key: 'color',
+      icon: () => h(MailOutlined),
+      label: '色料库存查看',
+      title: '色料库存查看'
+    });
+  }
   message.config({
     maxCount: 3,
     duration: 12,

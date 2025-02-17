@@ -240,7 +240,6 @@ function numberChange(item: any, type: number){
       if (item.reportNumber_T >= 0 && item.qualityNumber_T >= 0) {
         item.unqualityNumber_T = item.reportNumber_T - item.qualityNumber_T;
       }*/
-      console.log(item)
       item.reportNumber_T = (item.qualityNumber_T * 1 + item.unqualityNumber_T * 1).toFixed(3);
       if (prop.unitMessage === 'KG') {
         item.qualityNumber = item.qualityNumber_T * 1000;

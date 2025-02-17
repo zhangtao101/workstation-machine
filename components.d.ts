@@ -42,6 +42,7 @@ declare module 'vue' {
     ATooltip: typeof import('ant-design-vue/es')['Tooltip']
     ATree: typeof import('ant-design-vue/es')['Tree']
     AUpload: typeof import('ant-design-vue/es')['Upload']
+    Color: typeof import('./src/components/color.vue')['default']
     Detail: typeof import('./src/components/inStation/detail.vue')['default']
     DispatchCalendar: typeof import('./src/components/dispatch-calendar.vue')['default']
     EnergyConsumptionCollectionOperation: typeof import('./src/components/inStation/energy-consumption-collection-operation.vue')['default']

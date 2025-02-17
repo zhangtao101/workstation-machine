@@ -858,6 +858,13 @@ onMounted(() => {
                   <a-input-number :min="0" style="width: 160px;" v-model:value="item.unFeedNumber" placeholder="盘盈数量"></a-input-number>
                 </a-form-item>
               </a-col>
+              <a-col :span="8">
+                <a-form-item
+                  label="库存量"
+                >
+                  {{item.stockQuality || ''}}
+                </a-form-item>
+              </a-col>
             </a-row>
             <a-row>
               <a-col :offset="16" :span="8">

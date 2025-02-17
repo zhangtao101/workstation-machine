@@ -124,14 +124,12 @@ function inquiryTable() {
       unitMessage.value = unit
     } else {
       message.error({
-      content: `操作失败请联系管理员${data.msg}`,
-
-    })
+        content: `操作失败请联系管理员${data.msg}`,
+      })
     }
   }).catch((err) => {
     message.error({
       content: `操作失败请联系管理员,${err.message ? err.message : err}`,
-
     })
   }).finally(() => {
     homePageLoading.value = false;
@@ -194,9 +192,12 @@ onMounted(() => {
 
 
         <div class="work_order_information">
-          <a-descriptions>
+          <a-descriptions :column="4">
             <a-descriptions-item :span="1" label="工单号">
               {{ sheetMessage ? sheetMessage.workSheetCode : ''}}
+            </a-descriptions-item>
+            <a-descriptions-item :span="1" label="计划数量">
+              {{ sheetMessage ? sheetMessage.workPlanNumber + unitMessage : ''}}
             </a-descriptions-item>
             <a-descriptions-item :span="1" label="产品名称">
               {{ sheetMessage ? sheetMessage.productName : ''}}
