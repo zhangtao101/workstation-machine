@@ -110,6 +110,11 @@ function getMaterialsFun() {
     else if (prop.workstationMessage?.workstationName.includes('复选')) {
       ob = materialFXApply(params);
     }
+    else {
+      message.warning('当前没有具体的接口, 请联系相关人员!')
+      submitLoading.value = false;
+      return;
+    }
     ob?.then(({ data: {code, data, msg} }: any) => {
       if (code == 200) {
         message.success('操作成功')

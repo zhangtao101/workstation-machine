@@ -21,7 +21,7 @@ export function listWarehouseRecord(params: any) {
  * @param params 参数
  */
 export function searchWorksheet(params: any) {
-  return axios.get(`${BASE_URL}/plan/worksheet/search?${qs.stringify(params)}`, )
+  return axios.get(`${BASE_URL}plan/worksheet/search?${qs.stringify(params)}`, )
 }
 /**
  * 出库

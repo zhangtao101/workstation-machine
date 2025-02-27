@@ -53,6 +53,7 @@ declare module 'vue' {
     GetMaterialsOperation: typeof import('./src/components/inStation/get-materials-operation.vue')['default']
     InStationMain: typeof import('./src/components/inStation/in-station-main.vue')['default']
     LayingOff: typeof import('./src/components/laying-off.vue')['default']
+    Login: typeof import('./src/components/login.vue')['default']
     MachineSummary: typeof import('./src/components/machine-summary.vue')['default']
     MachineSummaryCopy: typeof import('./src/components/machine-summary-copy.vue')['default']
     MaterialMovement: typeof import('./src/components/material-movement.vue')['default']

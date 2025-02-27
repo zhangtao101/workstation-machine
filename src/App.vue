@@ -7,6 +7,8 @@ import { h, onMounted, ref, watch } from 'vue'
 import { MailOutlined } from '@ant-design/icons-vue'
 import WorkstationSelection from '@/components/workstation-selection.vue'
 import { message } from 'ant-design-vue'
+import Login from '@/components/login.vue'
+import { getCurrentUser } from '@/services/machine-summary.service'
 
 
 dayjs.locale('zh-cn')
@@ -130,8 +132,9 @@ watch(
     path.value = route.path;
   }
 );
-
+const userNmae = ref('');
 onMounted(() => {
+  userNmae.value = localStorage.getItem('username') || '';
   path.value = route.path;
   isShow.value = !!localStorage.getItem('equipmentCode');
   const equipmentName = localStorage.getItem('equipmentName');
@@ -186,7 +189,7 @@ onMounted(() => {
 
 <template>
   <a-config-provider :locale="zhCN">
-    <a-layout style="min-height: 100vh; width: 100vw; overflow: hidden;">
+    <a-layout style="min-height: 100vh; width: 100vw; overflow: hidden;" v-if="userNmae">
       <a-layout-sider v-model:collapsed="collapsed" collapsible>
         <a-menu
           :items="items"
@@ -203,6 +206,7 @@ onMounted(() => {
         </a-layout-content>
       </a-layout>
     </a-layout>
+    <login v-else />
   </a-config-provider>
 </template>
 

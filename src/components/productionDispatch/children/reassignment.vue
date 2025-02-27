@@ -118,7 +118,7 @@ defineExpose({
         <span class="details_text">{{ obj.productCode }}</span>
       </a-descriptions-item>
       <a-descriptions-item label="可派工数量">
-        <span class="details_text">{{ obj.number }}</span>
+        <span class="details_text">{{ obj.number + obj.unit }}</span>
       </a-descriptions-item>
       <a-descriptions-item label="当前设备号">
         <span class="details_text">{{ obj.equipCode }}</span>

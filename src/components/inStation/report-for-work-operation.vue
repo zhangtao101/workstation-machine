@@ -5,10 +5,10 @@ import { message, Modal } from 'ant-design-vue'
 import {
   getReportHistory,
   getReportToDoList,
-  listWordListByParentCode,
-  worksheetReport
+  listWordListByParentCode, worksheetFXReport,
+  worksheetReport, worksheetWGReport
 } from '@/services/process-arameter.service'
-import { getProductByWorksheetAndBindingId } from '@/services/machine-summary.service'
+import { getProductByWorksheetAndBindingId, getWorksheetCurrentTime } from '@/services/machine-summary.service'
 
 const prop = defineProps({
   id: {
@@ -115,6 +115,7 @@ function showReportForWork(row: any) {
   productCodes.value = [];
 
   queryLog(row);
+  queryTime();
   getProductByWorksheetAndBindingId({
     worksheetCode: prop.sheetMessage?.workSheetCode,
   }).then(({ data: {code, data, msg} }: any) => {
@@ -136,6 +137,31 @@ function showReportForWork(row: any) {
 }
 
 /**
+ * 查询人事机时
+ * @param row
+ */
+function queryTime() {
+  // worksheetCode
+  getWorksheetCurrentTime({
+    workstationCode: prop.workstationMessage?.workstationCode,
+    worksheetCode: prop.sheetMessage?.workSheetCode,
+  }).then(({ data: {code, data, msg} }: any) => {
+    console.log(data.currentTime)
+    if (code == 200) {
+      if (data.currentTime) {
+        formState.value.personTime =  (1 * data.currentTime).toFixed(2);
+        formState.value.equipTime = (1 * data.currentTime).toFixed(2);
+      }
+    }
+  }).catch((err) => {
+    message.error({
+      content: `操作失败请联系管理员,${err.message ? err.message : err}`,
+
+    })
+  })
+}
+
+/**
  * 关闭
  */
 function close() {
@@ -146,6 +172,11 @@ function close() {
   formState.value = []
 }
 
+/**
+ * 新增一行
+ * @param type 类型
+ * @param item 当前选择的行
+ */
 function addLine(type: number, item?: any) {
   switch(type) {
     case 1:
@@ -185,6 +216,11 @@ function addLine(type: number, item?: any) {
   }
 }
 
+/**
+ * 删除一行
+ * @param index
+ * @param i
+ */
 function delLine(index: number, i?: number) {
   Modal.confirm({
     title: '确定删除吗？',
@@ -271,12 +307,32 @@ function submit() {
             item.equipTime = formState.value.equipTime;
             item.defectCode = item.defectCode || '';
           });
-          worksheetReport({
-            taskCode: selectedRow.value.taskCode,
-            worksheetCode: selectedRow.value.worksheetCode,
-            bindingId: prop.id,
-            productCodes: formState.value.details
-          }).then(({ data: {code, data, msg} }: any) => {
+          let ob: any;
+          if (prop.workstationMessage?.workstationName.includes('卧干')) {
+            ob =  worksheetWGReport({
+              taskCode: selectedRow.value.taskCode,
+              worksheetCode: selectedRow.value.worksheetCode,
+              bindingId: prop.id,
+              productCodes: formState.value.details
+            })
+          }
+          else if (prop.workstationMessage?.workstationName.includes('抛光')) {
+            ob =  worksheetFXReport({
+              taskCode: selectedRow.value.taskCode,
+              worksheetCode: selectedRow.value.worksheetCode,
+              bindingId: prop.id,
+              productCodes: formState.value.details
+            })
+          }
+          else {
+            ob =  worksheetReport({
+              taskCode: selectedRow.value.taskCode,
+              worksheetCode: selectedRow.value.worksheetCode,
+              bindingId: prop.id,
+              productCodes: formState.value.details
+            })
+          }
+         ob.then(({ data: {code, data, msg} }: any) => {
             if (code == 200) {
               message.success('提交成功');
               close();
@@ -519,6 +575,18 @@ onMounted(() => {
                   allowClear
                   :options="defectOptions"
                 ></a-select>
+              </a-form-item>
+            </a-col>
+            <a-col :span="6">
+              <a-form-item
+                label="入库批次号"
+                v-if="workstationMessage?.workstationName.includes('抛光') || workstationMessage?.workstationName.includes('打包')"
+              >
+<!--                :rules="[{ required: true, message: '该项为必填项!' }]" -->
+                <a-input
+                  v-model:value="item.batchCode"
+                  allowClear
+                ></a-input>
               </a-form-item>
             </a-col>
           </a-row>

@@ -12,7 +12,7 @@ export function queryWorkstation(params: any) {
  * 查询工作站
  */
 export function getAllWorkstationList() {
-  return axios.get(`${BASE_URL}/workstation/setRecord/getAllWorkstationList`)
+  return axios.get(`${BASE_URL}workstation/setRecord/getAllWorkstationList`)
 }
 /**
  * 查询工作站详情

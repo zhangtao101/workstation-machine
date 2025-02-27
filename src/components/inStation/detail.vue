@@ -160,6 +160,7 @@ onMounted(() => {
           :opsetDetailId="activeItem"
           :workstationMessage="workstationMessage"
           :sheetMessage="sheetMessage"
+          :unitMessage="(workstationMessage?.workstationName.includes('制浆') || workstationMessage?.workstationName.includes('制粉') || workstationMessage?.workstationName.includes('制釉'))  ? unitMessage : '片'"
         />
       </template>
       <!-- 入库操作 -->
@@ -169,7 +170,7 @@ onMounted(() => {
           :opsetDetailId="activeItem"
           :workstationMessage="workstationMessage"
           :sheetMessage="sheetMessage"
-          :unitMessage="unitMessage"
+          :unitMessage="(workstationMessage?.workstationName.includes('制浆') || workstationMessage?.workstationName.includes('制粉') || workstationMessage?.workstationName.includes('制釉'))  ? unitMessage : '片'"
         />
       </template>
       <!-- 流转操作 -->
@@ -227,8 +228,9 @@ onMounted(() => {
           :opsetDetailId="activeItem"
           :workstationMessage="workstationMessage"
           :sheetMessage="sheetMessage"
-          :unitMessage="unitMessage"
+          :unitMessage="(workstationMessage?.workstationName.includes('制浆') || workstationMessage?.workstationName.includes('制粉') || workstationMessage?.workstationName.includes('制釉'))  ? unitMessage : '片'"
         />
+<!--        制浆、制粉、制釉-->
       </template>
       <!--  料仓查看 -->
       <template v-if="checkedType == 99">

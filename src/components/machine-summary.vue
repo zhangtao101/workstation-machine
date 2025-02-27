@@ -44,10 +44,10 @@ function inquiryTable() {
         totalDefectNumber,
         totalQualityNumber
       }
-      if (!userMessage.value.userName) {
-        localStorage.removeItem('username')
-        loginUser.value = undefined;
-      }
+      // if (!userMessage.value.userName) {
+      //   localStorage.removeItem('username')
+      //   loginUser.value = undefined;
+      // }
       equipList.value = equipStatusDTOs ?? []
       productionEquipmentList.value = sheetStatusDTOs ?? []
     } else {
@@ -274,38 +274,6 @@ function chartInit() {
 const userName = ref()
 // 当前已登录的用户名
 const loginUser = ref()
-// 登录加载状态
-const loginLoading = ref(false)
-// 登录对话框是否打开
-const loginOpen = ref(false)
-
-/**
- * 登录
- */
-function login() {
-  loginLoading.value = true
-  humanLogin(userName.value, localStorage.equipmentCode).then(({ data }: any) => {
-    if (data.code == 200) {
-      loginUser.value = userName.value
-      localStorage.username = userName.value
-      userName.value = ''
-      loginOpen.value = false
-      location.reload();
-    } else {
-      message.error({
-        content: `操作失败请联系管理员${data.msg}`,
-
-      })
-    }
-  }).catch((error: any) => {
-    message.error({
-      content: `操作失败请联系管理员${error}`,
-
-    })
-  }).finally(() => {
-    loginLoading.value = false
-  })
-}
 
 /**
  * 退出登录
@@ -314,7 +282,7 @@ function logout() {
   humanLogout(userName.value, localStorage.equipmentCode).then(({ data }: any) => {
     if (data.code == 200) {
       loginUser.value = ''
-      localStorage.username = ''
+      localStorage.clear();
       inquiryTable()
       location.reload();
     } else {
@@ -503,18 +471,6 @@ onMounted(() => {
       </div>
     </a-card>
   </a-spin>
-
-  <!-- 用户登录 -->
-  <a-modal v-model:open="loginOpen" title="用户登录" :maskClosable="false" style="min-width: 80%;">
-    <template #footer>
-      <a-button key="back" @click="loginOpen = false">取消</a-button>
-      <a-button key="submit" :disabled="!userName" :loading="loginLoading" type="primary" @click="login">登录</a-button>
-    </template>
-    <label>
-      用户名: &nbsp;&nbsp;
-      <a-input v-model:value="userName" style="width: 70%" />
-    </label>
-  </a-modal>
 </template>
 
 <style lang="scss" scoped>

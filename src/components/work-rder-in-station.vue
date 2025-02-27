@@ -124,7 +124,6 @@ function inquiryTable() {
   }).catch((err) => {
     message.error({
       content: `操作失败请联系管理员,${err.message ? err.message : err}`,
-
     })
   }).finally(() => {
     productListLoading.value = false;

@@ -59,6 +59,20 @@ export function worksheetReport(params: any) {
   return axios.post(`${BASE_URL}workstation/op/worksheetReport`, params)
 }
 /**
+ * 报工(卧干)
+ * @param params
+ */
+export function worksheetWGReport(params: any) {
+  return axios.post(`${BASE_URL}workstation/op/worksheetWGReport`, params)
+}
+/**
+ * 报工(分选)
+ * @param params
+ */
+export function worksheetFXReport(params: any) {
+  return axios.post(`${BASE_URL}workstation/op/worksheetFXReport`, params)
+}
+/**
  * 采集上传
  * @param params
  */
@@ -78,6 +92,13 @@ export function getEnergyHisory(params: any) {
  */
 export function getReportHistory(params: any) {
   return axios.get(`${BASE_URL}workstation/op/getReportHistory?${qs.stringify(params)}`)
+}
+/**
+ * 非生产上报显示历史记录
+ * @param params
+ */
+export function getUnProduceReportHistory(params: any) {
+  return axios.get(`${BASE_URL}workstation/op/getUnProduceReportHistory?${qs.stringify(params)}`)
 }
 /**
  * 出站

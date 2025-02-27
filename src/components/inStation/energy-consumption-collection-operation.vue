@@ -123,9 +123,9 @@ function submit() {
         }
       }).catch((err) => {
         message.error({
-      content: `操作失败请联系管理员,${err.message ? err.message : err}`,
-
-    })
+          content: `操作失败请联系管理员,${err.message ? err.message : err}`,
+        });
+        submitLoading.value = false;
       }).finally(() => {
         submitLoading.value = false;
       })
@@ -209,7 +209,7 @@ function queryLog(equipCode: string) {
       logArr.value = data;
       if (data.length > 0) {
         /*formState.value = data[0];*/
-        formState.value.catchDataType = data[0].energyType;
+        // formState.value.catchDataType = data[0].energyType;
         formState.value.opType = data[0].opType;
         formState.value.errorCode = data[0].errorCode;
         formState.value.energyValue = data[0].energyValue;

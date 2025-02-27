@@ -14,38 +14,6 @@ import WorkOrderSwitching from '@/components/inStation/work-order-switching.vue'
 const userName = ref()
 // 当前已登录的用户名
 const loginUser = ref()
-// 登录加载状态
-const loginLoading = ref(false)
-// 登录对话框是否打开
-const loginOpen = ref(false)
-
-/**
- * 登录
- */
-function login() {
-  loginLoading.value = true
-  humanLogin(userName.value, localStorage.equipmentCode).then(({ data }: any) => {
-    if (data.code == 200) {
-      loginUser.value = userName.value
-      localStorage.username = userName.value
-      userName.value = ''
-      loginOpen.value = false
-      location.reload();
-    } else {
-      message.error({
-        content: `操作失败请联系管理员${data.msg}`,
-
-      })
-    }
-  }).catch((error: any) => {
-    message.error({
-      content: `操作失败请联系管理员${error}`,
-
-    })
-  }).finally(() => {
-    loginLoading.value = false
-  })
-}
 
 /**
  * 退出登录
@@ -54,7 +22,7 @@ function logout() {
   humanLogout(userName.value, localStorage.equipmentCode).then(({ data }: any) => {
     if (data.code == 200) {
       loginUser.value = ''
-      localStorage.username = ''
+      localStorage.clear();
       location.reload();
     } else {
       message.error({
@@ -113,12 +81,18 @@ function inquiryTable() {
         totalDefectNumber,
         totalQualityNumber
       }
-      if (!userMessage.value.userName) {
-        localStorage.removeItem('username')
-        loginUser.value = undefined;
-      }
+      // if (!userMessage.value.userName) {
+      //   localStorage.removeItem('username')
+      //   loginUser.value = undefined;
+      // }
       equipMessage.value = equipStatusDTOs
       sheetMessage.value = sheetStatusDTOs[0]
+      if (!sheetMessage.value) {
+        message.error({
+          content: `未识别到工单，请重新选择工单进站`,
+        })
+        workStationChange();
+      }
       workstationMessage.value = workstationSetRecord
       zsStatus.value = zsFlag
       unitMessage.value = unit
@@ -167,11 +141,7 @@ onMounted(() => {
             </a-button>
             <work-order-switching :workstationMessage="workstationMessage" v-if="workstationMessage"/>
 
-            <a-button v-if="!loginUser" style="position:absolute; right: 1em;" type="primary" @click="loginOpen = true;userName = ''">
-              人员切换
-            </a-button>
             <a-popconfirm
-              v-if="loginUser"
               cancel-text="取消"
               ok-text="退出"
               placement="leftTop"
@@ -205,6 +175,15 @@ onMounted(() => {
             <a-descriptions-item :span="1" label="产品编号">
               {{ sheetMessage ? sheetMessage.productCode : ''}}
             </a-descriptions-item>
+            <a-descriptions-item :span="1" label="工单累计报工量">
+              {{ sheetMessage ? sheetMessage.totalReportNumber + unitMessage : ''}}
+            </a-descriptions-item>
+            <a-descriptions-item :span="1" label="工单累计良品量">
+              {{ sheetMessage ? sheetMessage.totalQualityNumber + unitMessage : ''}}
+            </a-descriptions-item>
+            <a-descriptions-item :span="1" label="工单累计废品量">
+              {{ sheetMessage ? sheetMessage.totalUnqualityNumber + unitMessage : ''}}
+            </a-descriptions-item>
           </a-descriptions>
         </div>
 
@@ -230,19 +209,6 @@ onMounted(() => {
         </a-card>
       </a-space>
     </a-spin>
-
-    <!-- 用户登录 -->
-    <a-modal v-model:open="loginOpen" title="用户登录" :maskClosable="false" style="min-width: 80%;">
-      <template #footer>
-        <a-button key="back" @click="loginOpen = false">取消</a-button>
-        <a-button key="submit" :disabled="!userName" :loading="loginLoading" type="primary" @click="login">登录
-        </a-button>
-      </template>
-      <label>
-        用户名: &nbsp;&nbsp;
-        <a-input v-model:value="userName" style="width: 70%" />
-      </label>
-    </a-modal>
   </div>
 </template>
 

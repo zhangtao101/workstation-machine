@@ -94,6 +94,10 @@ function submit(type: 0 | 1) {
     else if (prop.workstationMessage?.workstationName.includes('复选')) {
       ob =  smkFeedFXSave(params);
     }
+    else {
+      message.warning('当前没有具体的接口, 请联系相关人员!')
+      return;
+    }
     submitLoading.value = true;
   } else {
     ob = smkFeedZs(params);
@@ -152,7 +156,7 @@ function showFeed(row?: any) {
       row.batchCodes.forEach((item: any) => {
         warehouseCodeList.value.push({
           label: `${item.warehouseCode}(${item.stockQuality})__${item.remake}`,
-          value: `${item.warehouseCode}&&${item.stockQuality}`
+          value: `${item.warehouseCode}&&${item.stockQuality}&&${item.areaCode ?? ''}&&${item.batchCode ?? ''}`
         })
       });
     } else {
@@ -163,6 +167,7 @@ function showFeed(row?: any) {
           warehouseCode: item.warehouseCode,
           batchCode: item.batchCode,
           standardNumber: item.standardNumber,
+          stockQuality: item.stockQuality,
           unFeedNumber: 0
         });
 
@@ -219,7 +224,7 @@ function obtainTheAmountOfWetMaterialInput(row?: any) {
       sum += item.feedNumber;
     }
   });
-  return sum.toFixed(3) ?? 0;
+  return sum.toFixed(6) ?? 0;
 }
 /**
  * 获取干料总量
@@ -235,7 +240,7 @@ function getDryChargeSum(row?: any) {
         sum += item.feedNumber * (1 - item.waterNumber)
       }
     });
-    return sum.toFixed(3) ?? 0;
+    return sum.toFixed(6) ?? 0;
   }
 }
 /**
@@ -248,7 +253,7 @@ function getUnFeedNumberSum(row: any) {
       sum += item.unFeedNumber * 1;
     }
   });
-  return sum.toFixed(3);
+  return sum.toFixed(6);
 }
 /**
  * 获取干料量
@@ -256,7 +261,7 @@ function getUnFeedNumberSum(row: any) {
  */
 function getDryCharge(item: any) {
   if (item.feedNumber >= 0 && item.waterNumber >= 0) {
-    return (item.feedNumber * (1 - item.waterNumber)).toFixed(3);
+    return (item.feedNumber * (1 - item.waterNumber)).toFixed(6);
   }
   return 0;
 }
@@ -500,9 +505,9 @@ onMounted(() => {
   <div style="max-width: calc(100vw - 270px);">
     <a-space direction="vertical" style="width: 100%">
       <a-space>
-        <a-button type="primary" @click="isCreate = true; showFeed()">
+<!--        <a-button type="primary" @click="isCreate = true; showFeed()">
           新增
-        </a-button>
+        </a-button>-->
         <a-button
           type="primary"
           @click="submit(1)"
@@ -727,6 +732,7 @@ onMounted(() => {
               </a-col>
             </a-row>
             <a-row v-if="workstationMessage?.workstationName.includes('施釉') || workstationMessage?.workstationName.includes('制粉')">
+              <!-- 物料批次 -->
               <a-col :span="12" v-if="editItem.materialTypeFlag">
                 <a-form-item
                   label="物料批次"
@@ -762,6 +768,7 @@ onMounted(() => {
                   </a-select>
                 </a-form-item>
               </a-col>
+              <!-- 物料批次 -->
               <a-col :span="16">
                 <a-form-item
                   label="库位"
@@ -780,6 +787,8 @@ onMounted(() => {
                         let data = item.warehouseCodeAndNumber.split('&&');
                         item.warehouseCode = data[0];
                         item.stockQuality = data[1];
+                        item.areaCode = data[2] ?? undefined;
+                        item.batchCode = data[3] ?? undefined;
                       }
                     }"
                   >
@@ -862,7 +871,21 @@ onMounted(() => {
                 <a-form-item
                   label="库存量"
                 >
-                  {{item.stockQuality || ''}}
+                  {{item.stockQuality ?? ''}}
+                </a-form-item>
+              </a-col>
+              <a-col :span="8" v-if="item.batchCode && workstationMessage?.workstationName.includes('制粉')">
+                <a-form-item
+                  label="批次号"
+                >
+                  {{item.batchCode }}
+                </a-form-item>
+              </a-col>
+              <a-col :span="8" v-if="item.areaCode && workstationMessage?.workstationName.includes('制粉')">
+                <a-form-item
+                  label="储位"
+                >
+                  {{item.areaCode }}
                 </a-form-item>
               </a-col>
             </a-row>
@@ -874,7 +897,14 @@ onMounted(() => {
           </a-space>
         </template>
       </a-form>
-      <a-button type="primary" @click="addFeedLine()" v-if="isCreate || workstationMessage?.workstationName.includes('施釉') || workstationMessage?.workstationName.includes('制粉')" style="width:100%">添加</a-button>
+      <a-button
+        type="primary"
+        @click="addFeedLine()"
+        v-if="
+        isCreate ||
+        workstationMessage?.workstationName.includes('施釉') ||
+        workstationMessage?.workstationName.includes('制粉')"
+      style="width:100%">添加</a-button>
 
       <template #footer>
         <a-button style="margin-right: 8px" @click="close">取消</a-button>

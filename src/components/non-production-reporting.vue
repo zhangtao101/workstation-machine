@@ -2,7 +2,12 @@
 
 import { onMounted, ref } from 'vue'
 import { message, Modal } from 'ant-design-vue'
-import { listWordListByParentCode, unProduceReport } from '@/services/process-arameter.service'
+import {
+  getReportHistory,
+  getUnProduceReportHistory,
+  listWordListByParentCode,
+  unProduceReport
+} from '@/services/process-arameter.service'
 import { BASE_URL } from '@/services/config'
 import { UploadOutlined } from '@ant-design/icons-vue'
 import { getHomepage } from '@/services/machine-summary.service'
@@ -194,9 +199,9 @@ function inquiryTable() {
         totalDefectNumber,
         totalQualityNumber
       }
-      if (!userMessage.value.userName) {
-        localStorage.removeItem('username')
-      }
+      // if (!userMessage.value.userName) {
+      //   localStorage.removeItem('username')
+      // }
       equipMessage.value = equipStatusDTOs
       sheetMessage.value = sheetStatusDTOs[0]
       workstationMessage.value = workstationSetRecord
@@ -204,10 +209,12 @@ function inquiryTable() {
       selectOptions.value = [];
       workstationSetRecord.bindingdtos.forEach((item: any) => {
         item.equipCodeList.forEach((equip: any) => {
-          selectOptions.value.push({
-            label: `${equip.equipmentCode}-${equip.equipmentName}`,
-            value: equip.equipmentCode
-          });
+          if (equip.equipmentName.includes('表')) {
+            selectOptions.value.push({
+              label: `${equip.equipmentCode}-${equip.equipmentName}`,
+              value: equip.equipmentCode
+            });
+          }
         })
 
       })
@@ -224,6 +231,30 @@ function inquiryTable() {
     })
   }).finally(() => {
     homePageLoading.value = false;
+  })
+}
+
+// endregion
+
+// region 日志查询
+
+const logArr = ref<any>([]);
+
+function queryLog() {
+  getUnProduceReportHistory({
+    equipCode: sourceOfEnergyFormState.value.energyEquipCode,
+  }).then(({ data: {code, data, msg} }: any) => {
+    if (code == 200) {
+
+      logArr.value = [data] ;
+    } else {
+      message.error({
+        content: `操作失败请联系管理员${msg}`,
+
+      })
+    }
+  }).catch((err) => {
+    message.error(`操作失败请联系管理员,${err.message? err.message : err}`);
   })
 }
 
@@ -315,6 +346,7 @@ onMounted(() => {
                 placeholder="请选择"
                 style="width: 200px"
                 :options="selectOptions"
+                @change="queryLog"
               ></a-select>
             </a-form-item>
             <a-form-item
@@ -398,6 +430,27 @@ onMounted(() => {
               <a-button type="primary" @click="submitSourceOfEnergy()" style="width:100%">提交</a-button>
             </a-form-item>
           </a-form>
+
+          <a-timeline style="margin-top: 2em;">
+            <a-timeline-item
+              v-for="item of logArr"
+              :key="item.id"
+              color="green"
+            >
+              <a-descriptions bordered>
+                <a-descriptions-item label="任务编号">{{ item.taskCode }}</a-descriptions-item>
+                <a-descriptions-item label="开始时间">{{ item.startTime }}</a-descriptions-item>
+                <a-descriptions-item label="结束时间">{{ item.endTime }}</a-descriptions-item>
+                <a-descriptions-item label="开始电表读数">{{ item.energyValue }}</a-descriptions-item>
+                <a-descriptions-item label="结束电表读数">{{ item.endEnergyValue }}</a-descriptions-item>
+                <a-descriptions-item label="电表编号">{{ item.energyEquipCode }}</a-descriptions-item>
+                <a-descriptions-item label="能耗类型">{{ item.energyTypeName }}</a-descriptions-item>
+                <a-descriptions-item label="采集状态">{{ item.stateName }}</a-descriptions-item>
+                <a-descriptions-item label="异常编码">{{ item.errorCode }}</a-descriptions-item>
+                <a-descriptions-item label="异常名称">{{ item.errorName }}</a-descriptions-item>
+              </a-descriptions>
+            </a-timeline-item>
+          </a-timeline>
         </a-tab-pane>
       </a-tabs>
     </a-card>

@@ -9,7 +9,7 @@ import {
   getPackageInWarehouseList,
   getWarehouseCodeList,
   materialDBApply,
-  materialFXApply,
+  materialFXApply, worksheetBCP1InWarehouse,
   worksheetBCPInWarehouse,
   worksheetDBInWarehouse,
   worksheetFXInWarehouse,
@@ -80,6 +80,14 @@ function submit() {
   }
   else if (prop.workstationMessage?.workstationName.includes('复选')) {
     ob = worksheetFXInWarehouse(param);
+  }
+  else if (prop.workstationMessage?.workstationName.includes('卧干')) {
+    ob = worksheetBCP1InWarehouse(param);
+  }
+  else {
+    message.warning('当前没有具体的接口, 请联系相关人员!')
+    submitLoading.value = false;
+    return;
   }
   ob?.then(({ data: {code, data, msg} }: any) => {
     if (code == 200) {
@@ -243,7 +251,7 @@ onMounted(() => {
         required: true,
         message: '该项为必填项'
       }"
-      v-if="[7,6,5,10].indexOf(processType) == -1"
+      v-if="[7,6,10,12].indexOf(processType) == -1"
     >
       <a-select
         v-model:value="storageEntryForm.warehouseCode"

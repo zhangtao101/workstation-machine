@@ -28,6 +28,7 @@ export default defineConfig({
         // target: 'http://192.168.0.102:8050',
         // target: 'http://192.168.31.58:8050',
         target: 'https://v507z46671.yicp.fun',
+        // target: 'http://271z43k730.zicp.vip',
         // target: 'http://192.168.7.131:8050',
         // target: 'http://192.168.6.107:8050',
         // target: 'http://192.168.199.205:8050',

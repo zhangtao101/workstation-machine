@@ -90,6 +90,13 @@ export function worksheetFXInWarehouse(params: any) {
   return axios.post(`${BASE_URL}workstation/op/worksheetFXInWarehouse`, params)
 }
 /**
+ * 入库
+ * @param params 参数
+ */
+export function worksheetBCP1InWarehouse(params: any) {
+  return axios.post(`${BASE_URL}workstation/op/worksheetBCP1InWarehouse`, params)
+}
+/**
  * 获取库位
  * @param params 参数
  */
