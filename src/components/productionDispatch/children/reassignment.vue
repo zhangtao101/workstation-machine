@@ -127,7 +127,7 @@ defineExpose({
         <span class="details_text">{{ obj.waitSheetNumber }}</span>
       </a-descriptions-item>
       <a-descriptions-item label="工待生产数量">
-        <span class="details_text">{{ obj.waitProduceNumber }}</span>
+        <span class="details_text">{{ obj.waitProduceNumber + obj.unit }}</span>
       </a-descriptions-item>
     </a-descriptions>
 

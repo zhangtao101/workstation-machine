@@ -82,7 +82,7 @@ function submit(type: 0 | 1) {
     else if (prop.workstationMessage?.workstationName.includes('制色')) {
       ob =  smkFeedZSSave(params);
     }
-    else if (prop.workstationMessage?.workstationName.includes('制釉')) {
+    else if (prop.workstationMessage?.workstationName.includes('制釉') || prop.workstationMessage?.workstationName.includes('效果釉')) {
       ob =  smkFeedZYSave(params);
     }
     else if (prop.workstationMessage?.workstationName.includes('施釉')) {
@@ -142,20 +142,29 @@ const editItem = ref<any>({});
 const formState = ref<any>([]);
 const isCreate = ref(false);
 
+/**
+ * 显示投料抽屉
+ * @param row
+ */
 function showFeed(row?: any) {
   feedView.value = true;
   editItem.value = row || {};
 
   formState.value = row?.details || [];
   if (formState.value.length === 0) {
-    if (prop.workstationMessage?.workstationName.includes('施釉') || prop.workstationMessage?.workstationName.includes('制粉')) {
+    if (
+      prop.workstationMessage?.workstationName.includes('施釉') ||
+      prop.workstationMessage?.workstationName.includes('制粉') ||
+      prop.workstationMessage?.workstationName.includes('效果釉') ||
+      prop.workstationMessage?.workstationName.includes('制釉')
+    ) {
       formState.value.push({
         unFeedNumber: 0
       });
       warehouseCodeList.value = [];
       row.batchCodes.forEach((item: any) => {
         warehouseCodeList.value.push({
-          label: `${item.warehouseCode}(${item.stockQuality})__${item.remake}`,
+          label: `${item.warehouseCode}(${item.stockQuality})__${item.remake ?? ''}`,
           value: `${item.warehouseCode}&&${item.stockQuality}&&${item.areaCode ?? ''}&&${item.batchCode ?? ''}`
         })
       });
@@ -278,6 +287,8 @@ function feedingCheck() {
         if (
           prop.workstationMessage?.workstationName.includes('制粉') ||
           prop.workstationMessage?.workstationName.includes('施釉') ||
+          prop.workstationMessage?.workstationName.includes('制釉') ||
+          prop.workstationMessage?.workstationName.includes('效果釉') ||
           prop.workstationMessage?.workstationName.includes('打包')
         ) {
           params.push({
@@ -547,7 +558,10 @@ onMounted(() => {
         <vxe-column field="unit" title="单位" min-width="180"></vxe-column>
         <vxe-column field="materialUseNumber" title="已投入量" min-width="180"></vxe-column>
         <vxe-column title="加料量" min-width="180" v-if="
-          workstationMessage?.workstationName.includes('制粉') || workstationMessage?.workstationName.includes('施釉') || workstationMessage?.workstationName.includes('制釉')"
+          workstationMessage?.workstationName.includes('制粉') ||
+          workstationMessage?.workstationName.includes('施釉') ||
+          workstationMessage?.workstationName.includes('效果釉') ||
+          workstationMessage?.workstationName.includes('制釉')"
         >
           <template #default="{ row }">
             {{getDryChargeSum(row)(1)}}
@@ -559,7 +573,7 @@ onMounted(() => {
           </template>
         </vxe-column>
         <vxe-column title="干料投入量" min-width="180" v-if="
-          !(workstationMessage?.workstationName.includes('施釉') && workstationMessage?.workstationName.includes('制釉'))"
+          !(workstationMessage?.workstationName.includes('施釉') || workstationMessage?.workstationName.includes('制釉'))"
         >
           <template #default="{ row }">
             {{getDryChargeSum(row)()}}
@@ -625,13 +639,24 @@ onMounted(() => {
             </a-form-item>
           </a-col>
           <a-col :span="8">
-            <a-form-item :label="!(workstationMessage?.workstationName.includes('施釉') || workstationMessage?.workstationName.includes('打包') || workstationMessage?.workstationName.includes('制粉')) ? '标准干料量' : '标准投入量'">
+            <a-form-item :label="!(
+              workstationMessage?.workstationName.includes('制釉') ||
+              workstationMessage?.workstationName.includes('施釉') ||
+              workstationMessage?.workstationName.includes('效果釉') ||
+              workstationMessage?.workstationName.includes('打包') ||
+              workstationMessage?.workstationName.includes('制粉')) ? '标准干料量' : '标准投入量'">
               <a-input v-model:value="editItem.materialDosage" placeholder="物料名称" v-if="isCreate"></a-input>
               <span style="width: 160px;display: inline-block;" v-else>{{editItem.materialDosage}}</span>
             </a-form-item>
           </a-col>
           <a-col :span="8" v-if="
-          !(workstationMessage?.workstationName.includes('施釉') || workstationMessage?.workstationName.includes('打包') || workstationMessage?.workstationName.includes('制粉'))">
+          !(
+            workstationMessage?.workstationName.includes('制釉') ||
+            workstationMessage?.workstationName.includes('效果釉') ||
+            workstationMessage?.workstationName.includes('施釉') ||
+            workstationMessage?.workstationName.includes('打包') ||
+            workstationMessage?.workstationName.includes('制粉')
+          )">
             <a-form-item label="当前投入湿料量">
               <span  style="width: 160px;display: inline-block;">
                 {{getDryChargeSum()(1)}}
@@ -639,7 +664,12 @@ onMounted(() => {
             </a-form-item>
           </a-col>
           <a-col :span="8" v-if="
-          !(workstationMessage?.workstationName.includes('施釉') || workstationMessage?.workstationName.includes('打包') || workstationMessage?.workstationName.includes('制粉'))">
+          !(
+            workstationMessage?.workstationName.includes('制釉') ||
+            workstationMessage?.workstationName.includes('效果釉') ||
+            workstationMessage?.workstationName.includes('施釉') ||
+            workstationMessage?.workstationName.includes('打包') ||
+            workstationMessage?.workstationName.includes('制粉'))">
             <a-form-item label="当前投入干料量">
               <span  style="width: 160px;display: inline-block;">
                 {{getDryChargeSum()()}}
@@ -658,8 +688,11 @@ onMounted(() => {
           <a-space direction="vertical" style="border:1px solid red; margin: 1em 0;padding: 0.5em;">
             <a-row  v-if="
               !(workstationMessage?.workstationName.includes('施釉') ||
+              workstationMessage?.workstationName.includes('制釉') ||
+              workstationMessage?.workstationName.includes('效果釉') ||
               workstationMessage?.workstationName.includes('打包') ||
               workstationMessage?.workstationName.includes('制粉'))">
+              <!-- 物料批次 -->
               <a-col :span="8">
                 <a-form-item
                   label="物料批次"
@@ -686,6 +719,7 @@ onMounted(() => {
                   </a-select>
                 </a-form-item>
               </a-col>
+              <!-- 含水率 -->
               <a-col :span="8">
                 <a-form-item
                   label="含水率"
@@ -699,26 +733,29 @@ onMounted(() => {
                   </span>
                 </a-form-item>
               </a-col>
+              <!-- SAP储位 -->
               <a-col :span="8">
                 <a-form-item
                   label="SAP储位"
                 >
-                  <a-input v-model:value="item.areaCode" placeholder="SAP储位" v-if="isCreate"></a-input>
-                  <span style="display: inline-block;width: 160px;" v-else>
-                    {{ item.areaCode }}
-                  </span>
-                </a-form-item>
-              </a-col>
-              <a-col :span="8">
-                <a-form-item
-                  label="SAP库位"
-                >
-                  <a-input v-model:value="item.warehouseCode" placeholder="SAP库位" v-if="isCreate"></a-input>
+                  <a-input v-model:value="item.warehouseCode" placeholder="SAP储位" v-if="isCreate"></a-input>
                   <span style="display: inline-block;width: 160px;" v-else>
                     {{ item.warehouseCode }}
                   </span>
                 </a-form-item>
               </a-col>
+              <!-- SAP库位 -->
+              <a-col :span="8">
+                <a-form-item
+                  label="SAP库位"
+                >
+                  <a-input v-model:value="item.areaCode" placeholder="SAP库位" v-if="isCreate"></a-input>
+                  <span style="display: inline-block;width: 160px;" v-else>
+                    {{ item.areaCode }}
+                  </span>
+                </a-form-item>
+              </a-col>
+              <!-- 实际库位 -->
               <a-col :span="8">
                 <a-form-item
                   label="实际库位"
@@ -731,7 +768,12 @@ onMounted(() => {
                 </a-form-item>
               </a-col>
             </a-row>
-            <a-row v-if="workstationMessage?.workstationName.includes('施釉') || workstationMessage?.workstationName.includes('制粉')">
+            <a-row v-if="
+              workstationMessage?.workstationName.includes('制釉') ||
+              workstationMessage?.workstationName.includes('效果釉') ||
+              workstationMessage?.workstationName.includes('施釉') ||
+              workstationMessage?.workstationName.includes('制粉')"
+            >
               <!-- 物料批次 -->
               <a-col :span="12" v-if="editItem.materialTypeFlag">
                 <a-form-item
@@ -758,8 +800,8 @@ onMounted(() => {
                           }
                         });
                         if (obj) {
-                          item.warehouseCodeAndNumber = `${obj.areaCode}`;
-                          item.warehouseCode = obj.areaCode;
+                          item.warehouseCodeAndNumber = `${obj.warehouseCode}`;
+                          item.warehouseCode = obj.warehouseCode;
                           item.stockQuality = obj.stockQuality;
                         }
                       }
@@ -768,7 +810,7 @@ onMounted(() => {
                   </a-select>
                 </a-form-item>
               </a-col>
-              <!-- 物料批次 -->
+              <!-- 库位 -->
               <a-col :span="16">
                 <a-form-item
                   label="库位"
@@ -849,7 +891,12 @@ onMounted(() => {
                 </a-form-item>
               </a-col>
               <a-col :span="8" v-if="
-              !(workstationMessage?.workstationName.includes('施釉') || workstationMessage?.workstationName.includes('打包') || workstationMessage?.workstationName.includes('制粉'))">
+              !(
+                workstationMessage?.workstationName.includes('制釉') ||
+                workstationMessage?.workstationName.includes('效果釉') ||
+                workstationMessage?.workstationName.includes('施釉') ||
+                workstationMessage?.workstationName.includes('打包') ||
+                workstationMessage?.workstationName.includes('制粉'))">
                 <a-form-item
                   label="实际干料量"
                 >
@@ -874,14 +921,14 @@ onMounted(() => {
                   {{item.stockQuality ?? ''}}
                 </a-form-item>
               </a-col>
-              <a-col :span="8" v-if="item.batchCode && workstationMessage?.workstationName.includes('制粉')">
+              <a-col :span="8" v-if="item.batchCode && ( workstationMessage?.workstationName.includes('制粉') || workstationMessage?.workstationName.includes('制釉') || workstationMessage?.workstationName.includes('效果釉'))">
                 <a-form-item
                   label="批次号"
                 >
                   {{item.batchCode }}
                 </a-form-item>
               </a-col>
-              <a-col :span="8" v-if="item.areaCode && workstationMessage?.workstationName.includes('制粉')">
+              <a-col :span="8" v-if="item.areaCode && (workstationMessage?.workstationName.includes('制粉') || workstationMessage?.workstationName.includes('制釉') || workstationMessage?.workstationName.includes('效果釉'))">
                 <a-form-item
                   label="储位"
                 >
@@ -903,6 +950,8 @@ onMounted(() => {
         v-if="
         isCreate ||
         workstationMessage?.workstationName.includes('施釉') ||
+        workstationMessage?.workstationName.includes('效果釉') ||
+        workstationMessage?.workstationName.includes('制釉') ||
         workstationMessage?.workstationName.includes('制粉')"
       style="width:100%">添加</a-button>
 

@@ -55,9 +55,9 @@ function query() {
   tableLoading.value = true
   searchProduceWorkSheetList(params).then(({ data }) => {
     if (data.code == 200) {
-      const { data: { list, total } } = data
+      const { data: { list, totalSize } } = data
       tableData.value = list
-      tablePage.value.total = total
+      tablePage.value.total = totalSize
     } else {
       message.error({
       content: `操作失败请联系管理员${data.msg}`,
