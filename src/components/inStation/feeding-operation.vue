@@ -1,15 +1,16 @@
 <script setup lang="ts">
 
-import { onMounted, ref } from 'vue'
+import { h, onMounted, ref } from 'vue'
 import {
+  getAuditByRecord,
   getBomMaterialListByCode,
   getMaterialCodeList,
-  getWarehouseCodeList, getZFBomMaterialListByCode,
+  getWarehouseCodeList, getZFBomMaterialListByCode, pushAuditRecord,
   smkFeedCheck, smkFeedDBSave, smkFeedFXSave,
   smkFeedSave, smkFeedSYSave, smkFeedZFSave,
   smkFeedZs, smkFeedZSSave, smkFeedZYSave
 } from '@/services/in-station.service'
-import { message, Modal } from 'ant-design-vue'
+import { Input, message, Modal } from 'ant-design-vue'
 
 const prop = defineProps({
   id: {
@@ -150,7 +151,12 @@ function showFeed(row?: any) {
   feedView.value = true;
   editItem.value = row || {};
 
-  formState.value = row?.details || [];
+  // 判断是否处于审核状态
+  if (row.overtakingApproval) {
+    formState.value = row.overclaimDetails;
+  } else {
+    formState.value = row?.details || [];
+  }
   if (formState.value.length === 0) {
     if (
       prop.workstationMessage?.workstationName.includes('施釉') ||
@@ -276,6 +282,8 @@ function getDryCharge(item: any) {
 }
 
 const checkLoading = ref(false);
+const remark = ref('');
+
 /**
  * 投料验证
  */
@@ -309,6 +317,7 @@ function feedingCheck() {
             workSheetCode: prop.sheetMessage?.workSheetCode,
             bindingId: prop.id,
             materialCode: editItem.value.materialCode,
+            warehouseCode: (typeof item.warehouseCode === 'string') ? item.warehouseCode : item.warehouseCode[0]
           });
         }
       });
@@ -318,28 +327,35 @@ function feedingCheck() {
         smkFeedCheck(params).then(({ data: {code, data, msg} }: any) => {
           if (code == 200) {
             message.success('操作成功')
-            const values = formState.value;
-            values.forEach((item: any) => {
-              if (!item.waterNumber) {
-                item.waterNumber = 0;
-              }
-              item.materialCode = editItem.value.materialCode;
-              item.warehouseCode = (typeof item.warehouseCode === 'string') ? item.warehouseCode : item.warehouseCode[0];
-              item.warehouseCode = item.warehouseCode || '';
-            });
-            editItem.value.details = values;
+            editItem.value.details = getRawMaterialData();
             close();
+          } else if (code === 402) {
+            Modal.confirm({
+              title: '是否提交超领审批？',
+              content: h(
+                Input,
+                {
+                  onChange: (val: any) => {
+                    remark.value = val.target.value;
+                  }
+                }
+              ),
+              onOk() {
+                params.forEach((item: any) => {
+                  item.remark = remark.value;
+                })
+                submitOverclaim(params);
+              },
+            });
           } else {
             message.error({
               content: `操作失败请联系管理员${msg}`,
-
-            })
+            });
           }
         }).catch((err) => {
           message.error({
-      content: `操作失败请联系管理员,${err.message ? err.message : err}`,
-
-    })
+            content: `操作失败请联系管理员,${err.message ? err.message : err}`,
+          });
         }).finally(() => {
           checkLoading.value = false;
         });
@@ -349,6 +365,84 @@ function feedingCheck() {
         close();
       }
    });
+}
+
+/**
+ * 获取加料数据
+ */
+function getRawMaterialData() {
+  const values = formState.value;
+  values.forEach((item: any) => {
+    if (!item.waterNumber) {
+      item.waterNumber = 0;
+    }
+    item.materialCode = editItem.value.materialCode;
+    item.warehouseCode = (typeof item.warehouseCode === 'string') ? item.warehouseCode : item.warehouseCode[0];
+    item.warehouseCode = item.warehouseCode || '';
+  });
+  return values;
+}
+
+/**
+ * 提交超领审批
+ */
+function submitOverclaim(params: any) {
+
+  pushAuditRecord(params).then(({ data: {code, msg} }: any) => {
+    if (code == 200) {
+      // 设置超领详情, 备份不干扰源数据
+      editItem.value.overclaimDetails = getRawMaterialData();
+      queryAuditByRecord();
+      close();
+    } else {
+      message.error({
+        content: `操作失败请联系管理员${msg}`,
+      });
+    }
+  }).catch((err) => {
+    message.error({
+      content: `操作失败请联系管理员,${err.message ? err.message : err}`,
+    });
+  })
+}
+// 是否处于审核状态
+const overclaimStatus = ref(false);
+const queryTimeoutId = ref();
+// 查询是否处于审核状态
+function queryAuditByRecord() {
+  getAuditByRecord({
+    workstationCode: prop.workstationMessage?.workstationCode,
+    worksheetCode: prop.sheetMessage?.workSheetCode,
+  }).then(({ data: {code, data, msg} }: any) => {
+    if (code == 200) {
+      // 设置超领详情, 备份不干扰源数据
+      overclaimStatus.value = data === -1;
+      if (!overclaimStatus.value) {
+        tableData.value.forEach((item: any) => {
+          if (data === 1 && item.overclaimDetails) {
+            item.details = item.overclaimDetails;
+          } else {
+            item.overclaimDetails = undefined;
+          }
+        })
+      }
+    } else {
+      message.error({
+        content: `操作失败请联系管理员${msg}`,
+      });
+    }
+  }).catch((err) => {
+    message.error({
+      content: `操作失败请联系管理员,${err.message ? err.message : err}`,
+    });
+  }).finally(() => {
+    clearTimeout(queryTimeoutId.value);
+    if (overclaimStatus.value) {
+      queryTimeoutId.value = setTimeout(() => {
+        queryAuditByRecord();
+      }, 1000 * 20);
+    }
+  })
 }
 
 /**
@@ -483,7 +577,7 @@ function init() {
       } else {
         message.error(`操作失败请联系管理员${msg}`)
       }
-    }).catch((err) => {
+    }).catch((err: any) => {
       message.error({
       content: `操作失败请联系管理员,${err.message ? err.message : err}`,
 
@@ -496,6 +590,7 @@ function init() {
 onMounted(() => {
   init();
   getWarehouseCodeLists('');
+  queryAuditByRecord();
 
   // 添加事件监听器
   window.addEventListener('beforeunload', function(event) {
@@ -516,14 +611,14 @@ onMounted(() => {
   <div style="max-width: calc(100vw - 270px);">
     <a-space direction="vertical" style="width: 100%">
       <a-space>
-<!--        <a-button type="primary" @click="isCreate = true; showFeed()">
+        <a-button type="primary" @click="create()" v-if="workstationMessage?.workstationName.includes('制粉')">
           新增
-        </a-button>-->
+        </a-button>
         <a-button
           type="primary"
           @click="submit(1)"
           :loading="submitLoading"
-          :disabled="( workstationMessage?.workstationName.includes('制浆') ) && miscellaneousIncome && !zsStatus"
+          :disabled="( workstationMessage?.workstationName.includes('制浆') ) && miscellaneousIncome && !zsStatus || overclaimStatus"
         >
 <!--          :disabled="( workstationMessage?.workstationName.includes('制浆') || workstationMessage?.workstationName.includes('制色') ) && miscellaneousIncome"-->
           投料
@@ -531,16 +626,16 @@ onMounted(() => {
         <a-button
           type="primary"
           @click="submit(0)"
-          :disabled="!miscellaneousIncome || zsStatus"
+          :disabled="!miscellaneousIncome || zsStatus || overclaimStatus"
           :loading="miscellaneousIncomeLoading"
           v-if="workstationMessage?.workstationName.includes('制浆')">
           <!--        :disabled="!miscellaneousIncome"-->
           杂收(SAP)
         </a-button>
-        <a-button type="dashed" @click="saveOptions()" >
+        <a-button type="dashed" @click="saveOptions()" :disabled="overclaimStatus">
           保存当前操作
         </a-button>
-        <a-button type="dashed" danger @click="clearOptions()" >
+        <a-button type="dashed" danger @click="clearOptions()" :disabled="overclaimStatus" >
           清除已保存内容
         </a-button>
       </a-space>
@@ -586,7 +681,7 @@ onMounted(() => {
         </vxe-column>
         <vxe-column title="操作" min-width="180" fixed="right">
           <template #default="{ row }">
-            <a-button type="primary" @click="showFeed(row)">
+            <a-button type="primary" @click="showFeed(row)" :disabled="overclaimStatus">
               加料
             </a-button>
           </template>
@@ -738,9 +833,9 @@ onMounted(() => {
                 <a-form-item
                   label="SAP储位"
                 >
-                  <a-input v-model:value="item.warehouseCode" placeholder="SAP储位" v-if="isCreate"></a-input>
+                  <a-input v-model:value="item.areaCode" placeholder="SAP储位" v-if="isCreate"></a-input>
                   <span style="display: inline-block;width: 160px;" v-else>
-                    {{ item.warehouseCode }}
+                    {{ item.areaCode }}
                   </span>
                 </a-form-item>
               </a-col>
@@ -749,9 +844,9 @@ onMounted(() => {
                 <a-form-item
                   label="SAP库位"
                 >
-                  <a-input v-model:value="item.areaCode" placeholder="SAP库位" v-if="isCreate"></a-input>
+                  <a-input v-model:value="item.warehouseCode" placeholder="SAP库位" v-if="isCreate"></a-input>
                   <span style="display: inline-block;width: 160px;" v-else>
-                    {{ item.areaCode }}
+                    {{ item.warehouseCode }}
                   </span>
                 </a-form-item>
               </a-col>
@@ -886,6 +981,7 @@ onMounted(() => {
                     v-model:value="item.feedNumber"
                     placeholder="实际投入量"
                     :addon-after="editItem.unit"
+                    :disabled="editItem.overtakingApproval"
                     :min="0"
                   ></a-input-number>
                 </a-form-item>
@@ -957,7 +1053,14 @@ onMounted(() => {
 
       <template #footer>
         <a-button style="margin-right: 8px" @click="close">取消</a-button>
-        <a-button type="primary" @click="feedingCheck" :loading="checkLoading">提交</a-button>
+        <a-button
+          type="primary"
+          @click="feedingCheck"
+          :disabled="editItem.overtakingApproval"
+          :loading="checkLoading"
+        >
+            提交
+        </a-button>
       </template>
     </a-drawer>
 

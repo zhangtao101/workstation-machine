@@ -1,6 +1,6 @@
 import axios from 'axios'
 import qs from 'qs'
-import { BASE_URL } from '@/services/config'
+import { BASE_URL, BASE_USER_URL } from '@/services/config'
 
 /**
  * 工作站过程操作记录添加
@@ -34,6 +34,12 @@ export function getZFBomMaterialListByCode(equipCode: any, worksheetCode: string
  */
 export function getBatchListByWorksheetCode(worksheetCode: any) {
   return axios.get(`${BASE_URL}workstation/op/getBatchListByWorksheetCode?worksheetCode=${worksheetCode}`)
+}
+/**
+ * 数据字典表请求
+ */
+export function listWordListByParentCode() {
+  return axios.get(`${BASE_USER_URL}sys/word/listWordListByParentCode/LYZPLX`)
 }
 
 /**
@@ -178,6 +184,20 @@ export function smkFeedCheck(params: any) {
   return axios.post(`${BASE_URL}human/feed/smkFeedCheck`, params)
 }
 /**
+ * 33、推送超领审批
+ * @param params 参数
+ */
+export function pushAuditRecord(params: any) {
+  return axios.post(`${BASE_URL}human/feed/pushAuditRecord`, params)
+}
+/**
+ * 获取当前单号的最新信息
+ * @param params 参数
+ */
+export function getAuditByRecord(params: any) {
+  return axios.get(`${BASE_URL}human/feed/getAuditByRecord?${qs.stringify(params)}` )
+}
+/**
  * 投料校验
  * @param materialCode 参数
  */
@@ -287,6 +307,12 @@ export function turnMaterialRecordReport(params: any) {
  */
 export function getWarehouseListByStationCode(workstationCode: string) {
   return axios.get(`${BASE_URL}workstation/op/getWarehouseListByStationCode?workstationCode=${workstationCode}`)
+}
+/**
+ * 获取物料库存信息
+ */
+export function getMaterialCodeByWarehouseCode(warehouseCode: string) {
+  return axios.get(`${BASE_URL}workstation/op/getMaterialCodeByWarehouseCode?warehouseCode=${warehouseCode}`)
 }
 
 /**

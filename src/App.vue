@@ -154,20 +154,26 @@ onMounted(() => {
       title: '浆料移动'
     });
   }
-  else if (equipmentName?.includes('制釉')) {
+  else if (equipmentName?.includes('制粉')) {
     items.value.push({
       key: 'materialMovement',
       icon: () => h(MailOutlined),
-      label: '釉料移动',
-      title: '釉料移动'
+      label: '粉料移动',
+      title: '粉料移动'
     });
-  }
-  else if (equipmentName?.includes('制粉')) {
     items.value.push({
       key: 'warehouse',
       icon: () => h(MailOutlined),
       label: '料仓库存查看',
       title: '料仓库存查看'
+    });
+  }
+  else if (equipmentName?.includes('制釉')) {
+    items.value.push({
+      key: 'materialMovement',
+      icon: () => h(MailOutlined),
+      label: '浆料移动',
+      title: '浆料移动'
     });
   }
   else if (equipmentName?.includes('制色')) {

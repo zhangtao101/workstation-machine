@@ -3,6 +3,7 @@
 import { h, onMounted, ref } from 'vue'
 import { message } from 'ant-design-vue'
 import {
+  getMaterialCodeByWarehouseCode,
   getWarehouseListByStationCode,
   getYlzyWarehouseCodeList, turnMaterialRecordReport,
   turnRecordReport
@@ -69,7 +70,6 @@ function queryWarehouseList() {
   inventoryLoading.value = true;
   getWarehouseListByStationCode(localStorage.getItem('equipmentCode') || '').then(({ data: {code, data, msg} }: any) => {
     if (code == 200) {
-      console.log(data);
       inventory.value = data;
     }
   }).catch((err) => {
@@ -79,6 +79,21 @@ function queryWarehouseList() {
   }).finally(() => {
     inventoryLoading.value = false;
   });
+}
+
+// endregion
+
+// region 查询物料
+// 物料列表
+const materialCode = ref<any[]>([]);
+
+function queryMaterialCode(warehouseCode: string) {
+  formData.value.materialCode = undefined;
+  getMaterialCodeByWarehouseCode(warehouseCode).then(({data: {code, data, msg}}) => {
+    if (code == 200) {
+      materialCode.value = data;
+    }
+  })
 }
 
 // endregion
@@ -110,7 +125,7 @@ onMounted(() => {
         message: '该项为必填项'
       }"
     >
-      <a-select v-model:value="formData.formEquipCode" show-search style="width: 320px">
+      <a-select v-model:value="formData.formEquipCode" show-search style="width: 320px" @change="queryMaterialCode(formData.formEquipCode)">
         <a-select-option v-for="(item) of devices" :key="item" :value="item.equipCode">
           {{ item.equipName }}
         </a-select-option>
@@ -129,6 +144,22 @@ onMounted(() => {
       <a-select v-model:value="formData.destEquipCode" show-search style="width: 320px">
         <a-select-option v-for="(item) of devices" :key="item" :value="item.equipCode">
           {{ item.equipName }}
+        </a-select-option>
+      </a-select>
+    </a-form-item>
+
+    <a-form-item
+      label="物料选择"
+      name="materialCode"
+      style="margin-bottom: 1em;"
+      :rules="{
+        required: true,
+        message: '该项为必填项'
+      }"
+    >
+      <a-select v-model:value="formData.materialCode" show-search style="width: 320px">
+        <a-select-option v-for="(item) of materialCode" :key="item" :value="item.materialCode">
+          {{ item.materialCode }}({{item.materialName}})___{{item.stockQuality }}({{item.unit}})
         </a-select-option>
       </a-select>
     </a-form-item>

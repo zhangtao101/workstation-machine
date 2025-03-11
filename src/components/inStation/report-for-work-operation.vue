@@ -1,27 +1,31 @@
 <script setup lang="ts">
-
 import { onMounted, ref } from 'vue'
 import { message, Modal } from 'ant-design-vue'
 import {
   getReportHistory,
   getReportToDoList,
-  listWordListByParentCode, worksheetFXReport,
-  worksheetReport, worksheetWGReport
+  listWordListByParentCode,
+  worksheetFXReport,
+  worksheetReport,
+  worksheetWGReport
 } from '@/services/process-arameter.service'
-import { getProductByWorksheetAndBindingId, getWorksheetCurrentTime } from '@/services/machine-summary.service'
+import {
+  getProductByWorksheetAndBindingId,
+  getWorksheetCurrentTime
+} from '@/services/machine-summary.service'
 
 const prop = defineProps({
   id: {
     type: Number,
-    required: true,
+    required: true
   },
   checkedTypeName: {
     type: String,
-    required: true,
+    required: true
   },
   opsetDetailId: {
     type: Number,
-    required: true,
+    required: true
   },
   workstationMessage: {
     type: Object,
@@ -42,98 +46,98 @@ const prop = defineProps({
     type: String,
     required: false,
     default: ''
-  },
-});
-const emits = defineEmits(['close']);
+  }
+})
+const emits = defineEmits(['close'])
 
 // region 表格数据
 // 表格数据
-const tableData = ref<any>([]);
+const tableData = ref<any>([])
 // 表格加载状态
-const tableLoading = ref(false);
+const tableLoading = ref(false)
 // 编辑配置
 const editConfig = ref<any>({
   trigger: 'click',
   mode: 'cell'
-});
+})
 
 // endregion
 
 // region 提交历史查询
 // 日志
-const logArr = ref<any>([]);
-const cyNumber = ref(0);
-const ryNumber = ref(0);
-
+const logArr = ref<any>([])
+const cyNumber = ref(0)
+const ryNumber = ref(0)
 
 function queryLog(row: any) {
   getReportHistory({
     taskCode: row.taskCode,
     equipCode: prop.workstationMessage?.workstationCode,
     worksheetCode: prop.sheetMessage?.workSheetCode,
-    bindingId: prop.id,
-  }).then(({ data: {code, data, msg} }: any) => {
-    if (code == 200) {
-      console.log(data)
-      cyNumber.value = data.cyNumber;
-      ryNumber.value = data.ryNumber;
-      logArr.value = data.list;
-    } else {
-      message.error({
-        content: `操作失败请联系管理员${msg}`,
-
-      })
-    }
-  }).catch((err) => {
-    message.error(`操作失败请联系管理员,${err.message? err.message : err}`);
+    bindingId: prop.id
   })
+    .then(({ data: { code, data, msg } }: any) => {
+      if (code == 200) {
+        console.log(data)
+        cyNumber.value = data.cyNumber
+        ryNumber.value = data.ryNumber
+        logArr.value = data.list
+      } else {
+        message.error({
+          content: `操作失败请联系管理员${msg}`
+        })
+      }
+    })
+    .catch((err) => {
+      message.error(`操作失败请联系管理员,${err.message ? err.message : err}`)
+    })
 }
 
 // endregion
 
 // region 报工
-const isShow = ref(false);
+const isShow = ref(false)
 // 报工表单
-const formState = ref<any>({ });
+const formState = ref<any>({})
 // 选中的行
-const selectedRow = ref<any>([]);
+const selectedRow = ref<any>([])
 // 报工内容
-const selectedRowData = ref<any>([]);
+const selectedRowData = ref<any>([])
 // 产品列表
-const productCodes = ref<any>([]);
+const productCodes = ref<any>([])
 // form表单
-const formRef = ref();
+const formRef = ref()
 
 /**
  * 显示抽屉
  * @param row
  */
 function showReportForWork(row: any) {
-  isShow.value = true;
-  selectedRow.value = row;
-  selectedRowData.value = JSON.parse(row.reportData)['报工内容设置'];
-  productCodes.value = [];
+  isShow.value = true
+  selectedRow.value = row
+  selectedRowData.value = JSON.parse(row.reportData)['报工内容设置']
+  productCodes.value = []
 
-  queryLog(row);
-  queryTime();
+  queryLog(row)
+  queryTime()
   getProductByWorksheetAndBindingId({
-    worksheetCode: prop.sheetMessage?.workSheetCode,
-  }).then(({ data: {code, data, msg} }: any) => {
-    if (code == 200) {
-      data.forEach((item: any) => {
-        productCodes.value.push({
-          label: `${item.productCode}-${item.productName}`,
-          value: item.productCode,
-        });
-      });
-    }
-  }).catch((err) => {
-    message.error({
-      content: `操作失败请联系管理员,${err.message ? err.message : err}`,
-
-    })
+    worksheetCode: prop.sheetMessage?.workSheetCode
   })
-
+    .then(({ data: { code, data, msg } }: any) => {
+      if (code == 200) {
+        data.forEach((item: any) => {
+          productCodes.value.push({
+            label: `${item.productCode}-${item.productName}`,
+            value: item.productCode
+          })
+        })
+      }
+    })
+    .catch((err) => {
+      message.error({
+        content: `操作失败请联系管理员,${err.message ? err.message : err}`
+      })
+    })
 }
 
 /**
@@ -144,31 +148,32 @@ function queryTime() {
   // worksheetCode
   getWorksheetCurrentTime({
     workstationCode: prop.workstationMessage?.workstationCode,
-    worksheetCode: prop.sheetMessage?.workSheetCode,
-  }).then(({ data: {code, data, msg} }: any) => {
-    console.log(data.currentTime)
-    if (code == 200) {
-      if (data.currentTime) {
-        formState.value.personTime =  (1 * data.currentTime).toFixed(2);
-        formState.value.equipTime = (1 * data.currentTime).toFixed(2);
-      }
-    }
-  }).catch((err) => {
-    message.error({
-      content: `操作失败请联系管理员,${err.message ? err.message : err}`,
-
-    })
+    worksheetCode: prop.sheetMessage?.workSheetCode
   })
+    .then(({ data: { code, data, msg } }: any) => {
+      console.log(data.currentTime)
+      if (code == 200) {
+        if (data.currentTime) {
+          formState.value.personTime = (1 * data.currentTime).toFixed(2)
+          formState.value.equipTime = (1 * data.currentTime).toFixed(2)
+        }
+      }
+    })
+    .catch((err) => {
+      message.error({
+        content: `操作失败请联系管理员,${err.message ? err.message : err}`
+      })
+    })
 }
 
 /**
  * 关闭
  */
 function close() {
-  isShow.value = false;
-  selectedRowData.value = [];
+  isShow.value = false
+  selectedRowData.value = []
   productCodes.value = []
-  selectedRow.value = { }
+  selectedRow.value = {}
   formState.value = []
 }
 
@@ -178,13 +183,38 @@ function close() {
  * @param item 当前选择的行
  */
 function addLine(type: number, item?: any) {
-  switch(type) {
+  switch (type) {
     case 1:
       if (!formState.value.details) {
-        formState.value.details = [];
+        formState.value.details = []
       }
-      formState.value.details.push({
-        productCode: '',
+      // eslint-disable-next-line no-case-declarations
+      const i: any = {
+        productCode: ''
+      }
+      formState.value.details.push(i)
+      addLine(3, i)
+      break
+    case 2:
+      if (!item.personDetails) {
+        item.personDetails = []
+      }
+      item.personDetails.push({
+        reportNumber: 0,
+        qualityNumber: 0,
+        unqualityNumber: 0,
+        reportNumber_T: 0,
+        qualityNumber_T: 0,
+        unqualityNumber_T: 0,
+        personTime: 0,
+        reportUser: ''
+      })
+      break
+    case 3:
+      if (!item.details) {
+        item.details = []
+      }
+      item.details.push({
         defectCode: '',
         reportNumber: 0,
         qualityNumber: 0,
@@ -196,23 +226,8 @@ function addLine(type: number, item?: any) {
         equipTime: 0,
         waiteNumber: 0,
         reportUser: localStorage.username
-      });
-      break;
-    case 2:
-      if (!item.personDetails) {
-        item.personDetails = [];
-      }
-      item.personDetails.push({
-        reportNumber: 0,
-        qualityNumber: 0,
-        unqualityNumber: 0,
-        reportNumber_T: 0,
-        qualityNumber_T: 0,
-        unqualityNumber_T: 0,
-        personTime: 0,
-        reportUser: '',
-      });
-      break;
+      })
+      break
   }
 }
 
@@ -227,26 +242,39 @@ function delLine(index: number, i?: number) {
     onOk() {
       console.log(index, i, formState.value)
       if (i >= 0) {
-        formState.value.details[index].personDetails.splice(i, 1);
+        formState.value.details[index].personDetails.splice(i, 1)
       } else {
-        formState.value.details.splice(index, 1);
+        formState.value.details.splice(index, 1)
       }
-    },
-  });
+    }
+  })
+}
+/**
+ * 删除一行
+ * @param index
+ * @param i
+ */
+function delDetailLine(index: number, i: number) {
+  Modal.confirm({
+    title: '确定删除吗？',
+    onOk() {
+      formState.value.details[index].details.splice(i, 1)
+    }
+  })
 }
 
 // 面积系数
-const squareCoefficient =  ref(1);
+const squareCoefficient = ref(1)
 /**
  * 报工数量改变
  * @param item 当前报工元素
  * @param type 输入类型
  */
-function numberChange(item: any, type: number){
-  item.reportNumber = item.reportNumber || 0;
-  item.qualityNumber = item.qualityNumber || 0;
-  item.unqualityNumber = item.unqualityNumber || 0;
-  switch(type) {
+function numberChange(item: any, type: number) {
+  item.reportNumber = item.reportNumber || 0
+  item.qualityNumber = item.qualityNumber || 0
+  item.unqualityNumber = item.unqualityNumber || 0
+  switch (type) {
     case 1:
       /*// 良品数量不能大于报工数量
       if (item.qualityNumber > item.reportNumber) {
@@ -256,17 +284,17 @@ function numberChange(item: any, type: number){
       if (item.reportNumber >= 0 && item.qualityNumber >= 0) {
         item.unqualityNumber = item.reportNumber - item.qualityNumber;
       }*/
-      item.reportNumber = (item.qualityNumber + item.unqualityNumber).toFixed(3);
+      item.reportNumber = (item.qualityNumber + item.unqualityNumber).toFixed(3)
       if (prop.unitMessage === 'KG') {
-        item.qualityNumber_T = (item.qualityNumber / 1000).toFixed(3);
-        item.reportNumber_T = (item.reportNumber / 1000).toFixed(3);
-        item.unqualityNumber_T = (item.unqualityNumber / 1000).toFixed(3);
+        item.qualityNumber_T = (item.qualityNumber / 1000).toFixed(3)
+        item.reportNumber_T = (item.reportNumber / 1000).toFixed(3)
+        item.unqualityNumber_T = (item.unqualityNumber / 1000).toFixed(3)
       } else if (prop.unitMessage === '片') {
-        item.qualityNumber_pf = (item.qualityNumber * squareCoefficient.value).toFixed(3);
-        item.reportNumber_pf = (item.reportNumber * squareCoefficient.value).toFixed(3);
-        item.unqualityNumber_pf = (item.unqualityNumber * squareCoefficient.value).toFixed(3);
+        item.qualityNumber_pf = (item.qualityNumber * squareCoefficient.value).toFixed(3)
+        item.reportNumber_pf = (item.reportNumber * squareCoefficient.value).toFixed(3)
+        item.unqualityNumber_pf = (item.unqualityNumber * squareCoefficient.value).toFixed(3)
       }
-      break;
+      break
     case 2:
       /*// 良品数量不能大于报工数量
       if (item.qualityNumber_T > item.reportNumber_T) {
@@ -276,167 +304,172 @@ function numberChange(item: any, type: number){
       if (item.reportNumber_T >= 0 && item.qualityNumber_T >= 0) {
         item.unqualityNumber_T = item.reportNumber_T - item.qualityNumber_T;
       }*/
-      item.reportNumber_T = (item.qualityNumber_T * 1 + item.unqualityNumber_T * 1).toFixed(3);
+      item.reportNumber_T = (item.qualityNumber_T * 1 + item.unqualityNumber_T * 1).toFixed(3)
       if (prop.unitMessage === 'KG') {
-        item.qualityNumber = item.qualityNumber_T * 1000;
-        item.reportNumber = item.reportNumber_T * 1000;
-        item.unqualityNumber = item.unqualityNumber_T * 1000;
+        item.qualityNumber = item.qualityNumber_T * 1000
+        item.reportNumber = item.reportNumber_T * 1000
+        item.unqualityNumber = item.unqualityNumber_T * 1000
       } else if (prop.unitMessage === '片') {
-        item.qualityNumber_pf = (item.qualityNumber * squareCoefficient.value).toFixed(3);
-        item.reportNumber_pf = (item.reportNumber * squareCoefficient.value).toFixed(3);
-        item.unqualityNumber_pf = (item.unqualityNumber * squareCoefficient.value).toFixed(3);
+        item.qualityNumber_pf = (item.qualityNumber * squareCoefficient.value).toFixed(3)
+        item.reportNumber_pf = (item.reportNumber * squareCoefficient.value).toFixed(3)
+        item.unqualityNumber_pf = (item.unqualityNumber * squareCoefficient.value).toFixed(3)
       }
-      break;
+      break
   }
 }
 
-const submitLoading = ref(false);
+const submitLoading = ref(false)
 /**
  * 提交
  */
 function submit() {
-  formRef.value.validate()
+  formRef.value
+    .validate()
     .then(() => {
       Modal.confirm({
         title: '操作确认',
         content: '是否确认报工?',
         onOk() {
-          submitLoading.value = true;
+          submitLoading.value = true
+          const productCodes: any = []
           formState.value.details.forEach((item: any) => {
-            item.personTime = formState.value.personTime;
-            item.equipTime = formState.value.equipTime;
-            item.defectCode = item.defectCode || '';
-          });
-          let ob: any;
-          if (prop.workstationMessage?.workstationName.includes('卧干')) {
-            ob =  worksheetWGReport({
-              taskCode: selectedRow.value.taskCode,
-              worksheetCode: selectedRow.value.worksheetCode,
-              bindingId: prop.id,
-              productCodes: formState.value.details
+            item.details.forEach((d: any) => {
+              productCodes.push({
+                personTime: formState.value.personTime,
+                equipTime: formState.value.equipTime,
+                classType: formState.value.classType,
+                reportTime: formState.value.reportTime.format('YYYY-MM-DD HH:mm:ss'),
+                productCode: item.productCode,
+                defectCode: item.defectCode || '',
+                ...d
+              })
             })
+          })
+          let ob: any
+          const params = {
+            taskCode: selectedRow.value.taskCode,
+            worksheetCode: selectedRow.value.worksheetCode,
+            bindingId: prop.id,
+            productCodes: productCodes
           }
-          else if (prop.workstationMessage?.workstationName.includes('抛光')) {
-            ob =  worksheetFXReport({
-              taskCode: selectedRow.value.taskCode,
-              worksheetCode: selectedRow.value.worksheetCode,
-              bindingId: prop.id,
-              productCodes: formState.value.details
-            })
+          if (
+            prop.workstationMessage?.workstationName &&
+            prop.workstationMessage?.workstationName.includes('卧干')
+          ) {
+            ob = worksheetWGReport(params)
+          } else if (
+            prop.workstationMessage?.workstationName &&
+            prop.workstationMessage?.workstationName.includes('抛光')
+          ) {
+            ob = worksheetFXReport(params)
+          } else {
+            ob = worksheetReport(params)
           }
-          else {
-            ob =  worksheetReport({
-              taskCode: selectedRow.value.taskCode,
-              worksheetCode: selectedRow.value.worksheetCode,
-              bindingId: prop.id,
-              productCodes: formState.value.details
-            })
-          }
-         ob.then(({ data: {code, data, msg} }: any) => {
+          ob.then(({ data: { code, data, msg } }: any) => {
             if (code == 200) {
-              message.success('提交成功');
-              close();
-              init();
+              message.success('提交成功')
+              close()
+              init()
             } else {
               message.error(`操作失败请联系管理员${msg}`)
             }
-          }).catch((err) => {
-            message.error({
-              content: `操作失败请联系管理员,${err.message ? err.message : err}`,
-
-            })
-          }).finally(() => {
-            submitLoading.value = false;
           })
+            .catch((err) => {
+              message.error({
+                content: `操作失败请联系管理员,${err.message ? err.message : err}`
+              })
+            })
+            .finally(() => {
+              submitLoading.value = false
+            })
         },
         onCancel() {
-          message.warning('已取消!');
+          message.warning('已取消!')
         },
-        class: 'test',
-      });
+        class: 'test'
+      })
     })
     .catch((error: any) => {
-      console.log('error', error);
-    });
+      console.log('error', error)
+    })
 }
 
 // endregion
-
-
 
 // region 缺陷代码
-const defectOptions = ref<any>([]);
+const defectOptions = ref<any>([])
 function queryErrorCode() {
-  listWordListByParentCode('CPQXLB').then(({ data: {code, data, msg} }: any) => {
-    if (code == 200) {
-      defectOptions.value = [];
-      data.forEach((item: any) => {
-        defectOptions.value.push({
-          label: item.wordName,
-          value: item.wordCode,
-        });
-      })
-    } else {
-      message.error(`操作失败请联系管理员${msg}`)
-    }
-  }).catch((err) => {
-    message.error({
-      content: `操作失败请联系管理员,${err.message ? err.message : err}`,
-
+  listWordListByParentCode('CPQXLB')
+    .then(({ data: { code, data, msg } }: any) => {
+      if (code == 200) {
+        defectOptions.value = []
+        data.forEach((item: any) => {
+          defectOptions.value.push({
+            label: item.wordName,
+            value: item.wordCode
+          })
+        })
+      } else {
+        message.error(`操作失败请联系管理员${msg}`)
+      }
     })
-  })
+    .catch((err) => {
+      message.error({
+        content: `操作失败请联系管理员,${err.message ? err.message : err}`
+      })
+    })
 }
 
 // endregion
-
 
 // region 初始化
 function init() {
-  tableLoading.value = true;
+  tableLoading.value = true
   getReportToDoList({
     workstationCode: prop.workstationMessage?.workstationCode,
     worksheetCode: prop.sheetMessage?.workSheetCode,
     bindingId: prop.id,
-    opsetDetailId: prop.opsetDetailId,
-  }).then(({ data: {code, data, msg} }: any) => {
-    if (code == 200) {
-      tableData.value = data;
-    } else {
-      message.error(`操作失败请联系管理员${msg}`)
-    }
-  }).catch((err) => {
-    message.error(`操作失败请联系管理员,${err.message ? err.message : err}`)
-  }).finally(() => {
-    tableLoading.value = false;
-  });
-
+    opsetDetailId: prop.opsetDetailId
+  })
+    .then(({ data: { code, data, msg } }: any) => {
+      if (code == 200) {
+        tableData.value = data
+      } else {
+        message.error(`操作失败请联系管理员${msg}`)
+      }
+    })
+    .catch((err) => {
+      message.error(`操作失败请联系管理员,${err.message ? err.message : err}`)
+    })
+    .finally(() => {
+      tableLoading.value = false
+    })
 
   if (prop.unitMessage === '片') {
     getProductByWorksheetAndBindingId({
-      worksheetCode: prop.sheetMessage?.workSheetCode,
-    }).then(({ data: {code, data, msg} }: any) => {
-      if (code == 200) {
-        console.log(data)
-        // todo 等待返回面积系数
-        squareCoefficient.value = data[0].conversionFaction ?? 1;
-      }
-    }).catch((err) => {
-      message.error({
-      content: `操作失败请联系管理员,${err.message ? err.message : err}`,
-
+      worksheetCode: prop.sheetMessage?.workSheetCode
     })
-    })
+      .then(({ data: { code, data, msg } }: any) => {
+        if (code == 200) {
+          console.log(data)
+          // todo 等待返回面积系数
+          squareCoefficient.value = data[0].conversionFaction ?? 1
+        }
+      })
+      .catch((err) => {
+        message.error({
+          content: `操作失败请联系管理员,${err.message ? err.message : err}`
+        })
+      })
   }
 }
 
 onMounted(() => {
-  init();
-  queryErrorCode();
-});
+  init()
+  queryErrorCode()
+})
 
 // endregion
-
-
 </script>
 
 <template>
@@ -448,12 +481,14 @@ onMounted(() => {
     :style="{
       'max-width': `calc(100vw - 250px)`
     }"
-    :rowClassName="({ row }: any) => {
-      if (row.reportStatus === 1 && row.nowFlag) {
-        return 'completed';
+    :rowClassName="
+      ({ row }: any) => {
+        if (row.reportStatus === 1 && row.nowFlag) {
+          return 'completed'
+        }
+        return row.nowFlag ? 'toBeCompleted' : 'nowFlag'
       }
-      return row.nowFlag ? 'toBeCompleted' : 'nowFlag'
-    }"
+    "
   >
     <vxe-column type="seq" width="60"></vxe-column>
     <vxe-column field="worksheetCode" min-width="160" title="工单号"></vxe-column>
@@ -467,8 +502,9 @@ onMounted(() => {
           status="primary"
           :disabled="!row.nowFlag"
           @click="showReportForWork(row)"
-        >报工</vxe-button>
-<!--        :disabled="!row.nowFlag"-->
+          >报工</vxe-button
+        >
+        <!--        :disabled="!row.nowFlag"-->
       </template>
     </vxe-column>
   </vxe-table>
@@ -478,16 +514,18 @@ onMounted(() => {
     title="报工"
     placement="top"
     @close="close"
-    :height="400"
+    :height="500"
     :footer-style="{ textAlign: 'right' }"
   >
     <a-form
       ref="formRef"
       layout="inline"
       :model="formState"
-      :label-col="{ span: 24 }" :wrapper-col="{ span: 24 }"
+      :label-col="{ span: 24 }"
+      :wrapper-col="{ span: 24 }"
     >
       <a-row>
+        <!--   人时     -->
         <a-col :span="6">
           <a-form-item
             label="人时"
@@ -502,6 +540,7 @@ onMounted(() => {
             ></a-input-number>
           </a-form-item>
         </a-col>
+        <!--   机时     -->
         <a-col :span="6">
           <a-form-item
             label="机时"
@@ -516,10 +555,40 @@ onMounted(() => {
             ></a-input-number>
           </a-form-item>
         </a-col>
-        <a-col :span="6" v-if="workstationMessage?.workstationName.includes('烧成') && checkedTypeName?.includes('出窑')">
+
+        <!--   班次     -->
+        <a-col :span="6">
           <a-form-item
-            label="入窑数"
+            label="班次"
+            name="equipTime"
+            :rules="[{ required: true, message: '该项为必填项!' }]"
           >
+            <a-radio-group v-model:value="formState.classType" :options="[
+              { label: '白班', value: 1 },
+              { label: '夜班', value: 2 },
+            ]" />
+          </a-form-item>
+        </a-col>
+        <!--   报工时间     -->
+        <a-col :span="6">
+          <a-form-item
+            label="报工时间"
+            name="reportTime"
+            :rules="[{ required: true, message: '该项为必填项!' }]"
+          >
+            <a-date-picker show-time placeholder="报工时间" v-model:value="formState.reportTime" />
+          </a-form-item>
+        </a-col>
+
+        <!--   入窑数     -->
+        <a-col
+          :span="6"
+          v-if="
+            workstationMessage?.workstationName.includes('烧成') &&
+            checkedTypeName?.includes('出窑')
+          "
+        >
+          <a-form-item label="入窑数">
             <a-input-number
               v-model:value="ryNumber"
               :min="0"
@@ -529,10 +598,15 @@ onMounted(() => {
             ></a-input-number>
           </a-form-item>
         </a-col>
-        <a-col :span="6" v-if="workstationMessage?.workstationName.includes('烧成') && checkedTypeName?.includes('出窑')">
-          <a-form-item
-            label="出窑数"
-          >
+        <!--   出窑数     -->
+        <a-col
+          :span="6"
+          v-if="
+            workstationMessage?.workstationName.includes('烧成') &&
+            checkedTypeName?.includes('出窑')
+          "
+        >
+          <a-form-item label="出窑数">
             <a-input-number
               v-model:value="cyNumber"
               :min="0"
@@ -544,10 +618,14 @@ onMounted(() => {
         </a-col>
       </a-row>
       <template v-for="(item, index) of formState.details" :key="index">
-        <a-space direction="vertical" style="border:1px solid red; margin: 1em 0;padding: 0.5em;">
+        <a-space
+          direction="vertical"
+          style="border: 1px solid red; margin: 1em 0; padding: 0.5em; width: 100%"
+        >
           <!-- region 基本信息 -->
           <a-row>
-            <a-col :span="6">
+            <!--   产品编号     -->
+            <a-col :span="12">
               <a-form-item
                 label="产品编号"
                 :name="['details', index, 'productCode']"
@@ -561,162 +639,210 @@ onMounted(() => {
                 ></a-select>
               </a-form-item>
             </a-col>
-            <a-col :span="6">
-              <a-form-item
-                label="缺陷代码"
-                :name="['details', index, 'defectCode']"
-                :rules="[{ required: workstationMessage?.workstationName.includes('打包') || workstationMessage?.workstationName.includes('分选'), message: '该项为必填项!' }]"
-              >
-<!--                :rules="[{ required: true, message: '该项为必填项!' }]" -->
-                <a-select
-                  v-model:value="item.defectCode"
-                  show-search
-                  placeholder="请选择"
-                  allowClear
-                  :options="defectOptions"
-                ></a-select>
-              </a-form-item>
-            </a-col>
-            <a-col :span="6">
-              <a-form-item
-                label="入库批次号"
-                v-if="workstationMessage?.workstationName.includes('抛光') || workstationMessage?.workstationName.includes('打包')"
-              >
-<!--                :rules="[{ required: true, message: '该项为必填项!' }]" -->
-                <a-input
-                  v-model:value="item.batchCode"
-                  allowClear
-                ></a-input>
-              </a-form-item>
-            </a-col>
           </a-row>
-          <a-row>
-            <a-col :span="6">
-              <a-form-item
-                label="良品数量"
-                :min="0"
-                :name="['details', index, 'qualityNumber']"
-                :rules="[{ required: true, message: '该项为必填项!' }]"
-              >
-                <a-input-number
-                  v-model:value="item.qualityNumber"
-                  placeholder="良品数量"
-                  :addon-after="unitMessage"
+          <a-button type="primary" @click="addLine(3, item)">添加详情</a-button>
+          <div v-for="(detail, i) in item.details" :key="i">
+            <hr />
+            <a-row>
+              <!--   缺陷代码     -->
+              <a-col :span="6">
+                <a-form-item
+                  label="缺陷代码"
+                  :name="['details', index, 'details', i, 'defectCode']"
+                  :rules="[
+                    {
+                      required:
+                        workstationMessage?.workstationName.includes('打包') ||
+                        workstationMessage?.workstationName.includes('分选'),
+                      message: '该项为必填项!'
+                    }
+                  ]"
+                >
+                  <!--                :rules="[{ required: true, message: '该项为必填项!' }]" -->
+                  <a-select
+                    v-model:value="detail.defectCode"
+                    show-search
+                    placeholder="请选择"
+                    allowClear
+                    :options="defectOptions"
+                  ></a-select>
+                </a-form-item>
+              </a-col>
+              <!--   入库批次号     -->
+              <a-col :span="6">
+                <a-form-item
+                  label="入库批次号"
+                  v-if="
+                    workstationMessage?.workstationName.includes('抛光') ||
+                    workstationMessage?.workstationName.includes('打包')
+                  "
+                >
+                  <!--                :rules="[{ required: true, message: '该项为必填项!' }]" -->
+                  <a-input v-model:value="detail.batchCode" allowClear></a-input>
+                </a-form-item>
+              </a-col>
+              <!--   入库库位     -->
+              <a-col :span="6">
+                <a-form-item
+                  label="入库库位"
+                  v-if="
+                  workstationMessage?.workstationName.includes('抛光') ||
+                  workstationMessage?.workstationName.includes('湿磨')
+"
+                >
+                  <!--                :rules="[{ required: true, message: '该项为必填项!' }]" -->
+                  <a-select
+                    v-model:value="detail.warehouseCode"
+                    show-search
+                    placeholder="请选择"
+                    :options="[
+                      {
+                        label: '虚拟库',
+                        value: 'XN'
+                      },
+                      {
+                        label: '成品库',
+                        value: 'JA'
+                      }
+                    ]"
+                  ></a-select>
+                </a-form-item>
+              </a-col>
+            </a-row>
+            <a-row>
+              <a-col :span="6">
+                <a-form-item
+                  label="良品数量"
                   :min="0"
-                  @change="numberChange(item, 1)"
-                ></a-input-number>
-                <a-input-number
-                  v-model:value="item.qualityNumber_T"
-                  placeholder="良品数量"
-                  addon-after="T"
-                  :min="0"
-                  v-if="unitMessage === 'KG'"
-                  style="margin-top: 1em;"
-                  @Change="numberChange(item, 2)"
-                />
-                <a-input-number
-                  v-model:value="item.qualityNumber_pf"
-                  addon-after="㎡"
-                  :min="0"
-                  v-if="unitMessage === '片'"
-                  style="margin-top: 1em;"
-                  readonly
-                />
-              </a-form-item>
-            </a-col>
-            <a-col :span="6">
-              <a-form-item
-                label="废品数量"
-                :name="['details', index, 'unqualityNumber']"
-                :rules="[{ required: true, message: '该项为必填项!' }]"
-              >
-                <a-input-number
-                  v-model:value="item.unqualityNumber"
-                  placeholder="废品数量"
-                  :addon-after="unitMessage"
-                  :min="0"
-                  @change="numberChange(item, 1)"
-                ></a-input-number>
-                <a-input-number
-                  v-model:value="item.unqualityNumber_T"
-                  placeholder="废品数量"
-                  addon-after="T"
-                  :min="0"
-                  v-if="unitMessage === 'KG'"
-                  style="margin-top: 1em;"
-                  @change="numberChange(item, 2)"
-                />
-                <a-input-number
-                  v-model:value="item.unqualityNumber_pf"
-                  addon-after="㎡"
-                  :min="0"
-                  v-if="unitMessage === '片'"
-                  style="margin-top: 1em;"
-                  readonly
-                />
-              </a-form-item>
-            </a-col>
-            <a-col :span="6">
-              <a-form-item
-                label="报工数量"
-              >
-                <a-input-number
-                  v-model:value="item.reportNumber"
-                  placeholder="报工数量"
-                  :addon-after="unitMessage"
-                  :min="0"
-                  readonly
-                  @change="numberChange(item, 1)"
-                ></a-input-number>
-                <a-input-number
-                  v-model:value="item.reportNumber_T"
-                  placeholder="报工数量"
-                  addon-after="T"
-                  :min="0"
-                  readonly
-                  v-if="unitMessage === 'KG'"
-                  style="margin-top: 1em;"
-                  @Change="numberChange(item, 2)"
-                />
-                <a-input-number
-                  v-model:value="item.reportNumber_pf"
-                  addon-after="㎡"
-                  :min="0"
-                  v-if="unitMessage === '片'"
-                  style="margin-top: 1em;"
-                  readonly
-                />
-              </a-form-item>
-            </a-col>
-            <a-col :span="6" v-if="workstationMessage?.workstationName.includes('卧干')">
-              <a-form-item
-                label="单片干坯重量"
-                :name="['details', index, 'dryWeight']"
-                :rules="[{ required: true, message: '该项为必填项!' }]"
-              >
-                <a-input-number
-                  v-model:value="item.dryWeight"
-                  :min="0"
-                  placeholder="干坯重量"
-                  addon-after="KG"
-                ></a-input-number>
-              </a-form-item>
-            </a-col>
-            <a-col :span="6" v-if="workstationMessage?.workstationName.includes('抛光')">
-              <a-form-item
-                label="等待数量"
-                :name="['details', index, 'waiteNumber']"
-                :rules="[{ required: true, message: '该项为必填项!' }]"
-              >
-                <a-input-number
-                  v-model:value="item.waiteNumber"
-                  :min="0"
-                  placeholder="等待数量"
-                  :addon-after="unitMessage"
-                ></a-input-number>
-              </a-form-item>
-            </a-col>
-          </a-row>
+                  :name="['details', index, 'details', i, 'qualityNumber']"
+                  :rules="[{ required: true, message: '该项为必填项!' }]"
+                >
+                  <a-input-number
+                    v-model:value="detail.qualityNumber"
+                    placeholder="良品数量"
+                    :addon-after="unitMessage"
+                    :min="0"
+                    @change="numberChange(detail, 1)"
+                  ></a-input-number>
+                  <a-input-number
+                    v-model:value="detail.qualityNumber_T"
+                    placeholder="良品数量"
+                    addon-after="T"
+                    :min="0"
+                    v-if="unitMessage === 'KG'"
+                    style="margin-top: 1em"
+                    @Change="numberChange(detail, 2)"
+                  />
+                  <a-input-number
+                    v-model:value="detail.qualityNumber_pf"
+                    addon-after="㎡"
+                    :min="0"
+                    v-if="unitMessage === '片'"
+                    style="margin-top: 1em"
+                    readonly
+                  />
+                </a-form-item>
+              </a-col>
+              <a-col :span="6">
+                <a-form-item
+                  label="废品数量"
+                  :name="['details', index, 'details', i, 'unqualityNumber']"
+                  :rules="[{ required: true, message: '该项为必填项!' }]"
+                >
+                  <a-input-number
+                    v-model:value="detail.unqualityNumber"
+                    placeholder="废品数量"
+                    :addon-after="unitMessage"
+                    :min="0"
+                    @change="numberChange(detail, 1)"
+                  ></a-input-number>
+                  <a-input-number
+                    v-model:value="detail.unqualityNumber_T"
+                    placeholder="废品数量"
+                    addon-after="T"
+                    :min="0"
+                    v-if="unitMessage === 'KG'"
+                    style="margin-top: 1em"
+                    @change="numberChange(detail, 2)"
+                  />
+                  <a-input-number
+                    v-model:value="detail.unqualityNumber_pf"
+                    addon-after="㎡"
+                    :min="0"
+                    v-if="unitMessage === '片'"
+                    style="margin-top: 1em"
+                    readonly
+                  />
+                </a-form-item>
+              </a-col>
+              <a-col :span="6">
+                <a-form-item label="报工数量">
+                  <a-input-number
+                    v-model:value="detail.reportNumber"
+                    placeholder="报工数量"
+                    :addon-after="unitMessage"
+                    :min="0"
+                    readonly
+                    @change="numberChange(detail, 1)"
+                  ></a-input-number>
+                  <a-input-number
+                    v-model:value="detail.reportNumber_T"
+                    placeholder="报工数量"
+                    addon-after="T"
+                    :min="0"
+                    readonly
+                    v-if="unitMessage === 'KG'"
+                    style="margin-top: 1em"
+                    @Change="numberChange(detail, 2)"
+                  />
+                  <a-input-number
+                    v-model:value="detail.reportNumber_pf"
+                    addon-after="㎡"
+                    :min="0"
+                    v-if="unitMessage === '片'"
+                    style="margin-top: 1em"
+                    readonly
+                  />
+                </a-form-item>
+              </a-col>
+              <a-col :span="6" v-if="workstationMessage?.workstationName.includes('卧干')">
+                <a-form-item
+                  label="单片干坯重量"
+                  :name="['details', index, 'details', i, 'dryWeight']"
+                  :rules="[{ required: true, message: '该项为必填项!' }]"
+                >
+                  <a-input-number
+                    v-model:value="detail.dryWeight"
+                    :min="0"
+                    placeholder="干坯重量"
+                    addon-after="KG"
+                  ></a-input-number>
+                </a-form-item>
+              </a-col>
+              <a-col :span="6" v-if="workstationMessage?.workstationName.includes('抛光')">
+                <a-form-item
+                  label="等待数量"
+                  :name="['details', index, 'details', i, 'waiteNumber']"
+                  :rules="[{ required: true, message: '该项为必填项!' }]"
+                >
+                  <a-input-number
+                    v-model:value="detail.waiteNumber"
+                    :min="0"
+                    placeholder="等待数量"
+                    :addon-after="unitMessage"
+                  ></a-input-number>
+                </a-form-item>
+              </a-col>
+            </a-row>
+            <a-row style="margin-top: 2em">
+              <a-col :offset="18" :span="6">
+                <a-button type="primary" style="width: 100%" danger @click="delDetailLine(index, i)"
+                  >删除详情</a-button
+                >
+              </a-col>
+            </a-row>
+            <hr />
+          </div>
           <!-- endregion -->
           <a-button type="primary" @click="addLine(2, item)">添加人员</a-button>
           <!-- region 人员 -->
@@ -763,7 +889,7 @@ onMounted(() => {
                   addon-after="T"
                   :min="0"
                   v-if="unitMessage === 'KG'"
-                  style="margin-top: 1em;"
+                  style="margin-top: 1em"
                   @Change="numberChange(detail, 2)"
                 />
                 <a-input-number
@@ -771,7 +897,7 @@ onMounted(() => {
                   addon-after="㎡"
                   :min="0"
                   v-if="unitMessage === '片'"
-                  style="margin-top: 1em;"
+                  style="margin-top: 1em"
                   readonly
                 />
               </a-form-item>
@@ -795,7 +921,7 @@ onMounted(() => {
                   addon-after="T"
                   :min="0"
                   v-if="unitMessage === 'KG'"
-                  style="margin-top: 1em;"
+                  style="margin-top: 1em"
                   @change="numberChange(detail, 2)"
                 />
                 <a-input-number
@@ -803,7 +929,7 @@ onMounted(() => {
                   addon-after="㎡"
                   :min="0"
                   v-if="unitMessage === '片'"
-                  style="margin-top: 1em;"
+                  style="margin-top: 1em"
                   readonly
                 />
               </a-form-item>
@@ -828,7 +954,7 @@ onMounted(() => {
                   addon-after="T"
                   :min="0"
                   v-if="unitMessage === 'KG'"
-                  style="margin-top: 1em;"
+                  style="margin-top: 1em"
                   @Change="numberChange(detail, 2)"
                   readonly
                 />
@@ -837,38 +963,52 @@ onMounted(() => {
                   addon-after="㎡"
                   :min="0"
                   v-if="unitMessage === '片'"
-                  style="margin-top: 1em;"
+                  style="margin-top: 1em"
                   readonly
                 />
               </a-form-item>
             </a-col>
             <a-col :span="6">
-              <a-button type="primary" style="width:100%;position: absolute;bottom: 0;" danger @click="delLine(index, i)">删除人员</a-button>
+              <a-button
+                type="primary"
+                style="width: 100%; position: absolute; bottom: 0"
+                danger
+                @click="delLine(index, i)"
+                >删除人员</a-button
+              >
             </a-col>
           </a-row>
           <!-- endregion -->
-          <a-row style="margin-top: 2em;">
+          <a-row style="margin-top: 2em">
             <a-col :offset="18" :span="6">
-              <a-button type="primary" style="width:100%;" danger @click="delLine(index)">删除报工明细</a-button>
+              <a-button type="primary" style="width: 100%" danger @click="delLine(index)"
+                >删除报工明细</a-button
+              >
             </a-col>
           </a-row>
         </a-space>
       </template>
     </a-form>
-    <a-button type="primary" @click="addLine(1)" style="width:100%">添加</a-button>
-    <a-timeline style="margin-top: 1em;">
-      <a-timeline-item
-        v-for="item of logArr"
-        :key="item.id"
-        color="green"
-      >
+    <a-button type="primary" @click="addLine(1)" style="width: 100%">添加</a-button>
+    <a-timeline style="margin-top: 1em">
+      <a-timeline-item v-for="item of logArr" :key="item.id" color="green">
         <a-descriptions bordered>
           <a-descriptions-item label="产品编号">{{ item.productCode }}</a-descriptions-item>
           <a-descriptions-item label="缺陷代码">{{ item.defectCode }}</a-descriptions-item>
-          <a-descriptions-item label="报工数量">{{ item.reportNumber }}{{unitMessage}}</a-descriptions-item>
-          <a-descriptions-item label="良品数量">{{ item.qualityNumber }}{{unitMessage}}</a-descriptions-item>
-          <a-descriptions-item label="废品数量">{{ item.unqualityNumber }}{{unitMessage}}</a-descriptions-item>
-          <a-descriptions-item label="等待数量" v-if="workstationMessage?.workstationName.includes('抛光')">{{ item.waiteNumber }}{{unitMessage}}</a-descriptions-item>
+          <a-descriptions-item label="报工数量"
+            >{{ item.reportNumber }}{{ unitMessage }}</a-descriptions-item
+          >
+          <a-descriptions-item label="良品数量"
+            >{{ item.qualityNumber }}{{ unitMessage }}</a-descriptions-item
+          >
+          <a-descriptions-item label="废品数量"
+            >{{ item.unqualityNumber }}{{ unitMessage }}</a-descriptions-item
+          >
+          <a-descriptions-item
+            label="等待数量"
+            v-if="workstationMessage?.workstationName.includes('抛光')"
+            >{{ item.waiteNumber }}{{ unitMessage }}</a-descriptions-item
+          >
           <a-descriptions-item label="人时">{{ item.personTime }}小时</a-descriptions-item>
           <a-descriptions-item label="机时">{{ item.equipTime }}小时</a-descriptions-item>
           <a-descriptions-item label="报工时间">{{ item.reportTime }}</a-descriptions-item>

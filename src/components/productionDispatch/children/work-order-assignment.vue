@@ -238,17 +238,17 @@ onMounted(() => {
         <vxe-column field="planDateStart" min-width="120" title="计划时间"></vxe-column>
         <vxe-column field="productCode" min-width="120" title="产品编号"></vxe-column>
         <vxe-column field="productName" min-width="280" title="产品名称"></vxe-column>
-        <vxe-column field="lineName" min-width="120" title="任务线别"></vxe-column>
-        <vxe-column field="subProductCode" min-width="120" title="部件编号"></vxe-column>
-        <vxe-column field="subProductName" min-width="280" title="部件名称"></vxe-column>
-        <vxe-column field="subPlanCode" min-width="120" title="部件计划号"></vxe-column>
-        <vxe-column field="subPlanNumber" min-width="120" title="部件计划数量"></vxe-column>
-        <vxe-column field="produceUnarrangedNumber" min-width="120" title="生产未排数"></vxe-column>
-        <vxe-column field="produceNotFinishNumber" min-width="120" title="生产未完数"></vxe-column>
+<!--        <vxe-column field="lineName" min-width="120" title="任务线别"></vxe-column>-->
+<!--        <vxe-column field="subProductCode" min-width="120" title="部件编号"></vxe-column>-->
+<!--        <vxe-column field="subProductName" min-width="280" title="部件名称"></vxe-column>-->
+<!--        <vxe-column field="subPlanCode" min-width="120" title="部件计划号"></vxe-column>-->
+<!--        <vxe-column field="subPlanNumber" min-width="120" title="部件计划数量"></vxe-column>-->
+<!--        <vxe-column field="produceUnarrangedNumber" min-width="120" title="生产未排数"></vxe-column>-->
+<!--        <vxe-column field="produceNotFinishNumber" min-width="120" title="生产未完数"></vxe-column>-->
         <vxe-column field="workSheetPlanNumber" min-width="120" title="工单计划数"></vxe-column>
-        <vxe-column field="workSheetFinishNumber" min-width="120" title="工单完成数"></vxe-column>
+<!--        <vxe-column field="workSheetFinishNumber" min-width="120" title="工单完成数"></vxe-column>-->
         <vxe-column field="planCode" min-width="180" title="计划号"></vxe-column>
-        <vxe-column field="produceWorkshop" min-width="120" title="生产车间"></vxe-column>
+<!--        <vxe-column field="produceWorkshop" min-width="120" title="生产车间"></vxe-column>-->
         <vxe-column field="remark" min-width="160" title="备注"></vxe-column>
       </vxe-table>
       <vxe-pager

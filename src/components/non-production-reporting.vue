@@ -209,7 +209,7 @@ function inquiryTable() {
       selectOptions.value = [];
       workstationSetRecord.bindingdtos.forEach((item: any) => {
         item.equipCodeList.forEach((equip: any) => {
-          if (equip.equipmentName.includes('表')) {
+          if (equip.equipmentName && equip.equipmentName.includes('表')) {
             selectOptions.value.push({
               label: `${equip.equipmentCode}-${equip.equipmentName}`,
               value: equip.equipmentCode

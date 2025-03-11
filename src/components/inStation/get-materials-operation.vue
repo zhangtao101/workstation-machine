@@ -4,7 +4,7 @@ import { onMounted, ref } from 'vue'
 import { message, Modal } from 'ant-design-vue'
 import {
   getBatchListByWorksheetCode,
-  getMaterials,
+  getMaterials, listWordListByParentCode,
   materialDBApply,
   materialFXApply
 } from '@/services/in-station.service'
@@ -77,6 +77,11 @@ function selectedChange(formItem: any) {
 const filterOption = (input: string, option: any) => {
   return option.materialCode.toLowerCase().indexOf(input.toLowerCase()) >= 0 ||
     option.materialName.toLowerCase().indexOf(input.toLowerCase()) >= 0;
+};
+// 过滤
+const filterOption2 = (input: string, option: any) => {
+  return option.wordName.toLowerCase().indexOf(input.toLowerCase()) >= 0 ||
+    option.wordName.toLowerCase().indexOf(input.toLowerCase()) >= 0;
 };
 
 const numberChange =  async (_rule: any, value: number) => {
@@ -158,6 +163,16 @@ function init() {
 
     })
   });
+  getWordListByParentCode();
+}
+
+const wordList = ref([]);
+function getWordListByParentCode() {
+  listWordListByParentCode().then(({ data: {code, data, msg} }: any) => {
+    if (code == 200) {
+      wordList.value = data;
+    }
+  });
 }
 
 onMounted(() => {
@@ -180,6 +195,21 @@ onMounted(() => {
     <a-space direction="vertical" style="width: 100%;margin-top: 1em;">
       <template v-for="(item, index) of listOfMaterials" :key="item.id">
         <a-card>
+          <a-form-item
+            label="砖坯类型"
+            :name="[index, 'productPtTypeCode']"
+            :rules="{
+              required: true,
+              message: '该项为必填项',
+            }"
+          >
+            <a-select
+              v-model:value="listOfMaterials[index].productPtTypeCode"
+              :field-names="{ label: 'wordName', value: 'wordCode' }"
+              :filter-option="filterOption2"
+              :options="wordList"
+            />
+          </a-form-item>
           <a-form-item
             label="领用批号"
             :name="[index, 'batchCode']"
