@@ -3,8 +3,8 @@
 import { h, onMounted, ref } from 'vue'
 import {
   getAuditByRecord,
-  getBomMaterialListByCode,
-  getMaterialCodeList,
+  getBomMaterialListByCode, getMaterialCodeByJjcl,
+  getMaterialCodeList, getWarehouseByMaterialCode,
   getWarehouseCodeList, getZFBomMaterialListByCode, pushAuditRecord,
   smkFeedCheck, smkFeedDBSave, smkFeedFXSave,
   smkFeedSave, smkFeedSYSave, smkFeedZFSave,
@@ -132,6 +132,19 @@ function submit(type: 0 | 1) {
     miscellaneousIncomeLoading.value = false;
   });
 }
+
+/**
+ * 删除一行
+ * @param rowIndex
+ */
+function delRow(rowIndex: number) {
+  Modal.confirm({
+    title: '确定删除吗？',
+    onOk() {
+      tableData.value.splice(rowIndex, 1);
+    },
+  });
+}
 // endregion
 
 // region 投料
@@ -141,7 +154,53 @@ const feedView = ref(false);
 const formRef = ref();
 const editItem = ref<any>({});
 const formState = ref<any>([]);
-const isCreate = ref(false);
+// 物料列表
+const materialCodeList = ref<any>([]);
+
+/**
+ * 新增
+ */
+function create() {
+  showFeed({
+    created: true,
+    materialUseNumber: 0
+  });
+  getMaterialCodeByJjcl().then(({ data: {code, data, msg} }: any) => {
+    if (code == 200) {
+      if (data && data.length > 0) {
+        materialCodeList.value = [];
+        data.forEach((item: any) => {
+          materialCodeList.value.push({
+            label: item.materialName,
+            value: item.materialCode,
+            unit: item.unit,
+          });
+        });
+      }
+    }
+  })
+}
+
+/**
+ * 查询库位(制粉)
+ */
+function queryLibraryLocation() {
+  if (editItem.value.materialCode) {
+    getWarehouseByMaterialCode(editItem.value.materialCode).then(({ data: {code, data, msg} }: any) => {
+      if (code == 200) {
+        console.log(data);
+        if (data && data.length > 0) {
+          data.forEach((item: any) => {
+            warehouseCodeList.value.push({
+              label: `${item.warehouseCode}(${item.stockQuality})__${item.remake ?? ''}`,
+              value: `${item.warehouseCode}&&${item.stockQuality}&&${item.areaCode ?? ''}&&${item.batchCode ?? ''}`
+            })
+          })
+        }
+      }
+    })
+  }
+}
 
 /**
  * 显示投料抽屉
@@ -152,10 +211,10 @@ function showFeed(row?: any) {
   editItem.value = row || {};
 
   // 判断是否处于审核状态
-  if (row.overtakingApproval) {
-    formState.value = row.overclaimDetails;
+  if (editItem.value.overtakingApproval) {
+    formState.value = editItem.value.overclaimDetails;
   } else {
-    formState.value = row?.details || [];
+    formState.value = editItem.value?.details || [];
   }
   if (formState.value.length === 0) {
     if (
@@ -168,29 +227,31 @@ function showFeed(row?: any) {
         unFeedNumber: 0
       });
       warehouseCodeList.value = [];
-      row.batchCodes.forEach((item: any) => {
+      editItem.value.batchCodes?.forEach((item: any) => {
         warehouseCodeList.value.push({
           label: `${item.warehouseCode}(${item.stockQuality})__${item.remake ?? ''}`,
           value: `${item.warehouseCode}&&${item.stockQuality}&&${item.areaCode ?? ''}&&${item.batchCode ?? ''}`
         })
       });
     } else {
-      row.batchCodes.forEach((item: any) => {
-        formState.value.push({
-          waterNumber: item.waterNumber,
-          areaCode: item.areaCode,
-          warehouseCode: item.warehouseCode,
-          batchCode: item.batchCode,
-          standardNumber: item.standardNumber,
-          stockQuality: item.stockQuality,
-          unFeedNumber: 0
-        });
+      if (editItem.value.batchCodes) {
+        editItem.value.batchCodes.forEach((item: any) => {
+          formState.value.push({
+            waterNumber: item.waterNumber,
+            areaCode: item.areaCode,
+            warehouseCode: item.warehouseCode,
+            batchCode: item.batchCode,
+            standardNumber: item.standardNumber,
+            stockQuality: item.stockQuality,
+            unFeedNumber: 0
+          });
 
-        warehouseCodeList.value.push({
-          label: item.warehouseCode,
-          value: `${item.warehouseCode}&&${item.stockQuality}`
-        })
-      });
+          warehouseCodeList.value.push({
+            label: item.warehouseCode,
+            value: `${item.warehouseCode}&&${item.stockQuality}`
+          })
+        });
+      }
     }
   }
 }
@@ -201,7 +262,6 @@ function showFeed(row?: any) {
 function close() {
   editItem.value = {};
   feedView.value = false;
-  isCreate.value = false;
   formState.value = [];
 }
 
@@ -322,11 +382,14 @@ function feedingCheck() {
         }
       });
 
-      if( !isCreate.value ) {
+      if( !editItem.value.created ) {
         checkLoading.value = true;
         smkFeedCheck(params).then(({ data: {code, data, msg} }: any) => {
           if (code == 200) {
             message.success('操作成功')
+            data.forEach((_item: any, index: number) => {
+              formState.value[index].unFeedNumber = _item.unFeedNumber
+            })
             editItem.value.details = getRawMaterialData();
             close();
           } else if (code === 402) {
@@ -467,45 +530,6 @@ function clearOptions() {
     },
   });
 }
-// endregion
-
-
-//region 查询物料列表
-
-const materialCodeList = ref<any>([]);
-const materialCodeListLoading = ref<any>(false);
-
-/**
- * 搜索物料
- * @param val
- */
-function searchMaterial(val: string) {
-  materialCodeListLoading.value = true;
-  getMaterialCodeList(val).then(({ data: {code, data: { results }, msg} }: any) => {
-    if (code == 200) {
-      materialCodeList.value = [];
-      results.forEach((item: any) => {
-        materialCodeList.value.push({
-          label: item.materialName,
-          value: item.materialCode
-        })
-      })
-    } else {
-      message.error({
-        content: `操作失败请联系管理员${msg}`,
-
-      })
-    }
-  }).catch((err) => {
-    message.error({
-      content: `操作失败请联系管理员,${err.message ? err.message : err}`,
-
-    })
-  }).finally(() => {
-    materialCodeListLoading.value = false;
-  });
-}
-
 // endregion
 
 // region 库位查询
@@ -680,9 +704,13 @@ onMounted(() => {
           </template>
         </vxe-column>
         <vxe-column title="操作" min-width="180" fixed="right">
-          <template #default="{ row }">
+          <template #default="{ row, rowIndex }">
             <a-button type="primary" @click="showFeed(row)" :disabled="overclaimStatus">
               加料
+            </a-button>
+            &nbsp;
+            <a-button v-if="row.created" type="primary" @click="delRow(rowIndex)" danger :disabled="overclaimStatus">
+              删除
             </a-button>
           </template>
         </vxe-column>
@@ -706,42 +734,41 @@ onMounted(() => {
         :wrapper-col="{ span: 24 }"
       >
         <a-row>
-          <a-col :span="8">
+          <a-col :span="editItem.created ? 12 : 8">
             <a-form-item label="物料编号">
               <a-select
                 v-model:value="editItem.materialCode"
-                show-search
                 placeholder="输入编号进行查询"
-                style="width: 160px;"
+                style="width: 100%;"
                 :filter-option="false"
                 :options="materialCodeList"
-                @search="searchMaterial"
                 @change="(_val: any, _item: any) => {
                   editItem.materialName = _item.label;
+                  editItem.unit = _item.unit;
+                  queryLibraryLocation();
                 }"
-                v-if="isCreate"
+                v-if="editItem.created"
               >
-                <template v-if="materialCodeListLoading" #notFoundContent>
-                  <a-spin size="small" />
-                </template>
               </a-select>
               <span style="width: 160px;display: inline-block;" v-else>{{editItem.materialCode}}</span>
             </a-form-item>
           </a-col>
-          <a-col :span="8">
+          <a-col :span="8" v-if="!editItem.created">
             <a-form-item label="物料名称">
-              <span style="width: 160px;display: inline-block;">{{editItem.materialName}}</span>
+              <span style="width: 100%;display: inline-block;">{{editItem.materialName}}</span>
             </a-form-item>
           </a-col>
-          <a-col :span="8">
-            <a-form-item :label="!(
-              workstationMessage?.workstationName.includes('制釉') ||
-              workstationMessage?.workstationName.includes('施釉') ||
-              workstationMessage?.workstationName.includes('效果釉') ||
-              workstationMessage?.workstationName.includes('打包') ||
-              workstationMessage?.workstationName.includes('制粉')) ? '标准干料量' : '标准投入量'">
-              <a-input v-model:value="editItem.materialDosage" placeholder="物料名称" v-if="isCreate"></a-input>
-              <span style="width: 160px;display: inline-block;" v-else>{{editItem.materialDosage}}</span>
+          <a-col :span="8" v-if="!editItem.created">
+            <a-form-item
+              :label="!(
+                workstationMessage?.workstationName.includes('制釉') ||
+                workstationMessage?.workstationName.includes('施釉') ||
+                workstationMessage?.workstationName.includes('效果釉') ||
+                workstationMessage?.workstationName.includes('打包') ||
+                workstationMessage?.workstationName.includes('制粉')) ? '标准干料量' : '标准投入量'
+              "
+            >
+              <span style="width: 160px;display: inline-block;">{{editItem.materialDosage}}</span>
             </a-form-item>
           </a-col>
           <a-col :span="8" v-if="
@@ -794,7 +821,7 @@ onMounted(() => {
                   :name="[index, 'batchCode']"
                   :rules="[{ required: true, message: '该项为必填项!' }]"
                 >
-                  <a-input v-model:value="item.batchCode" placeholder="物料批次" v-if="isCreate"></a-input>
+                  <a-input v-model:value="item.batchCode" placeholder="物料批次" v-if="editItem.created"></a-input>
 
                   <a-select
                     v-model:value="item.batchCode"
@@ -819,7 +846,7 @@ onMounted(() => {
                 <a-form-item
                   label="含水率"
                 >
-                  <a-input v-model:value="item.waterNumber" placeholder="含水率" v-if="isCreate"></a-input>
+                  <a-input v-model:value="item.waterNumber" placeholder="含水率" v-if="editItem.created"></a-input>
                   <span style="display: inline-block;width: 160px;" v-else-if="item.waterNumber">
                     {{(item.waterNumber * 100).toFixed(2) }}%
                   </span>
@@ -833,7 +860,7 @@ onMounted(() => {
                 <a-form-item
                   label="SAP储位"
                 >
-                  <a-input v-model:value="item.areaCode" placeholder="SAP储位" v-if="isCreate"></a-input>
+                  <a-input v-model:value="item.areaCode" placeholder="SAP储位" v-if="editItem.created"></a-input>
                   <span style="display: inline-block;width: 160px;" v-else>
                     {{ item.areaCode }}
                   </span>
@@ -844,7 +871,7 @@ onMounted(() => {
                 <a-form-item
                   label="SAP库位"
                 >
-                  <a-input v-model:value="item.warehouseCode" placeholder="SAP库位" v-if="isCreate"></a-input>
+                  <a-input v-model:value="item.warehouseCode" placeholder="SAP库位" v-if="editItem.created"></a-input>
                   <span style="display: inline-block;width: 160px;" v-else>
                     {{ item.warehouseCode }}
                   </span>
@@ -856,7 +883,7 @@ onMounted(() => {
                   label="实际库位"
                   v-if=" workstationMessage?.workstationName.includes('制浆')"
                 >
-                  <a-input v-model:value="item.sjWarehouseCode" placeholder="实际库位" v-if="isCreate"></a-input>
+                  <a-input v-model:value="item.sjWarehouseCode" placeholder="实际库位" v-if="editItem.created"></a-input>
                   <span style="display: inline-block;width: 160px;" v-else>
                     {{ item.sjWarehouseCode }}
                   </span>
@@ -1044,7 +1071,7 @@ onMounted(() => {
         type="primary"
         @click="addFeedLine()"
         v-if="
-        isCreate ||
+        editItem.created ||
         workstationMessage?.workstationName.includes('施釉') ||
         workstationMessage?.workstationName.includes('效果釉') ||
         workstationMessage?.workstationName.includes('制釉') ||

@@ -184,6 +184,19 @@ export function smkFeedCheck(params: any) {
   return axios.post(`${BASE_URL}human/feed/smkFeedCheck`, params)
 }
 /**
+ * 加料内容获取(粉料新增)
+ * @param materialCode 参数
+ */
+export function getWarehouseByMaterialCode(materialCode: any) {
+  return axios.get(`${BASE_URL}workstation/op/getWarehouseByMaterialCode?materialCode=${materialCode}`)
+}
+/**
+ * 物料获取
+ */
+export function getMaterialCodeByJjcl() {
+  return axios.get(`${BASE_URL}workstation/op/getMaterialCodeByJjcl`)
+}
+/**
  * 33、推送超领审批
  * @param params 参数
  */
@@ -329,4 +342,10 @@ export function getAllLCWarehouseList(areaCode: string) {
 export function getAllSjWarehouseList(params: any) {
   // https://v507z46671.yicp.fun/mes-main/workstation/op/getAllSjWarehouseList
   return axios.get(`${BASE_URL}workstation/op/getAllSjWarehouseList?${qs.stringify(params)}`)
+}
+/**
+ * 绑定工艺路线
+ */
+export function bindingRoute(params: any) {
+  return axios.post(`${BASE_URL}workstation/op/bindingRoute`, params)
 }

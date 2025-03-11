@@ -50,3 +50,9 @@ export function outPutSmkWorksheet(params: any) {
 export function queryWorkstationByCode(workstationCode: any) {
   return axios.get(`${BASE_URL}workstation/setRecord/queryByCode?workstationCode=${workstationCode}`)
 }
+/**
+ * 查询工艺路线
+ */
+export function getRouteList(params: any) {
+  return axios.get(`${BASE_URL}process/route/getRouteList?${qs.stringify(params)}`)
+}

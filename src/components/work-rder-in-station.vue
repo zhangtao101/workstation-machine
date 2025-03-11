@@ -1,15 +1,16 @@
 <script setup lang="ts">
 
-import { onMounted, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { message } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
 import {
-  getAllWorkstationList,
+  getAllWorkstationList, getRouteList,
   getWorksheetByCode,
   getWorksheetListByWorkstationCode,
   inputSmkWorksheet
 } from '@/services/workstation.service'
 import { getHomepage } from '@/services/machine-summary.service'
+import { bindingRoute } from '@/services/in-station.service'
 
 
 const router = useRouter();
@@ -220,6 +221,67 @@ function pullIn() {
 
 // endregion
 
+// region 工艺路线选择
+// 工艺路线名称(模糊查询)
+const routeName = ref('');
+// 查询状态
+const searchLoading = ref(false);
+// 工艺路线列表
+const routeList = ref<any>([]);
+// 工艺路线抽屉是否显示
+const routeOpen = ref(false);
+// 当前选中的工艺路线
+const selectedRoute = ref<any>();
+// 单选样式
+const radioStyle = reactive({
+  display: 'flex',
+  lineHeight: '30px',
+});
+
+/**
+ * 查询工艺路线
+ */
+function queryProcessRoute() {
+  searchLoading.value = true;
+  routeOpen.value = true;
+  getRouteList({
+    pageNum: 1,
+    pageSize: 500,
+    routeName: routeName.value,
+  }).then(({ data: {code, data, msg} }) => {
+    if (code == 200) {
+      routeList.value = data.list;
+    } else {
+      message.error(msg || '服务器发生错误, 请联系管理员!');
+    }
+  }).finally(() => {
+    searchLoading.value = false;
+  });
+}
+
+/**
+ * 选择工艺路线
+ */
+function bindingProcessRoute() {
+  pullInLoading.value = true;
+  bindingRoute({
+    worksheetCode: selectedProductCode.value,
+    routeCode: selectedRoute.value,
+    workstationCode: workstation.value,
+  }).then(({ data: { code, msg } }) => {
+    if (code == 200) {
+      pullIn();
+      routeOpen.value = false;
+    } else {
+      message.error(msg)
+    }
+  }).finally(() => {
+    pullInLoading.value = false;
+  });
+}
+
+// endregion
+
 onMounted(() => {
   if (localStorage.lockProductCode &&  localStorage.equipmentCode) {
     selectedProductCode.value = localStorage.lockProductCode;
@@ -280,6 +342,12 @@ onMounted(() => {
                     </template>
                   </a-select>
                   <a-button
+                    v-if="selectedProduct && selectedProduct.workSheetCode?.includes('YF')"
+                    type="primary"
+                    @click="queryProcessRoute"
+                  >工艺路线选择</a-button>
+                  <a-button
+                    v-else
                     type="primary"
                     @click="pullIn"
                     :disabled="!selectedProductCode || isNotEdit"
@@ -297,6 +365,37 @@ onMounted(() => {
         </a-spin>
       </a-card>
     </a-space>
+
+
+    <a-drawer
+      v-model:open="routeOpen"
+      :footer-style="{ textAlign: 'right' }"
+      title="工艺路线选择"
+      placement="right"
+    >
+      <a-input-search
+        v-model:value="routeName"
+        placeholder="输入关键字进行查询"
+        enter-button="查询"
+        :loading="searchLoading"
+        @search="queryProcessRoute"
+      />
+      <div style="margin-top: 20px; max-height: 70%;overflow-y: auto;">
+        <a-radio-group v-model:value="selectedRoute">
+          <a-radio
+            v-for="(item, index) of routeList"
+            :style="radioStyle"
+            :value="item.routeCode"
+            :key="index"
+          >{{ item.routeName }}</a-radio>
+        </a-radio-group>
+      </div>
+
+      <template #footer>
+        <a-button style="margin-right: 8px" @click="routeOpen = false">取消</a-button>
+        <a-button type="primary" @click="bindingProcessRoute" :loading="pullInLoading" :disabled="!selectedRoute">确认选择</a-button>
+      </template>
+    </a-drawer>
   </div>
 </template>
 
