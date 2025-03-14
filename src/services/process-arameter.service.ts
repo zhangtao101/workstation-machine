@@ -45,6 +45,20 @@ export function getLCWarehouseList(params: any) {
   return axios.get(`${BASE_URL}workstation/op/getLCWarehouseList?${qs.stringify(params)}`)
 }
 /**
+ * 获取实际配方清单
+ * @param params
+ */
+export function getCxSetListByWorksheetCode(params: any) {
+  return axios.get(`${BASE_URL}workstation/op/getCxSetListByWorksheetCode?${qs.stringify(params)}`)
+}
+/**
+ * 获取实际配方清单
+ * @param params
+ */
+export function cxMaterialSetReport(params: any) {
+  return axios.post(`${BASE_URL}workstation/op/cxMaterialSetReport`, params)
+}
+/**
  * 工艺参数上传
  * @param params
  */
@@ -113,4 +127,33 @@ export function outPutSmkWorksheet(params: any) {
  */
 export function unProduceReport(params: any) {
   return axios.post(`${BASE_URL}workstation/op/unProduceReport`, params)
+}
+
+/**
+ * 查看需要清账的工单列表
+ * @param params
+ */
+export function getCXNotAuditList(params: any) {
+  return axios.get(`${BASE_URL}workstation/op/getCXNotAuditList?${qs.stringify(params)}`);
+}
+/**
+ * 查看余量库存
+ * @param params
+ */
+export function getWorksheetLcStock(params: any) {
+  return axios.get(`${BASE_URL}workstation/op/getWorksheetLcStock?${qs.stringify(params)}`);
+}
+/**
+ * 清理余量库存
+ * @param params
+ */
+export function clearWorksheetLcStock(params: any) {
+  return axios.post(`${BASE_URL}workstation/op/clearWorksheetLcStock`, params);
+}
+/**
+ * 清料完成
+ * @param params
+ */
+export function cxWorksheetAudit(params: any) {
+  return axios.post(`${BASE_URL}workstation/op/cxWorksheetAudit`, params);
 }

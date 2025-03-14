@@ -13,6 +13,7 @@ import ReportForWorkOperation from '@/components/inStation/report-for-work-opera
 import FeedingOperation from '@/components/inStation/feeding-operation.vue'
 import StorageBin from '@/components/inStation/storage-bin.vue'
 import PressSettingReport from '@/components/inStation/press-setting-report.vue'
+import MateriaBinRatio from '@/components/inStation/materia-bin-ratio.vue'
 
 const props = defineProps({
   id: {
@@ -107,6 +108,19 @@ onMounted(() => {
     <div style="min-height: 200px">
       <div class="operation-list">
         <a-space size="large">
+          <div
+            :class="{
+              'operation-list-item': true,
+              'operation-list-item-active': 100 == activeItem
+            }"
+            @click="checkItem({
+              id: 100,
+              opType: 100
+             })"
+            v-if="processName === '压机'"
+          >
+            粉料配比
+          </div>
           <template v-for="item of operationDetails" :key="item.id">
             <div
               :class="{
@@ -235,6 +249,17 @@ onMounted(() => {
       <!--  料仓查看 -->
       <template v-if="checkedType == 99">
         <storage-bin
+          :id="id"
+          :checkedTypeName="processName"
+          :opsetDetailId="activeItem"
+          :workstationMessage="workstationMessage"
+          :sheetMessage="sheetMessage"
+          :unitMessage="unitMessage"
+        />
+      </template>
+      <!--  粉料配比    -->
+      <template v-if="checkedType == 100">
+        <materia-bin-ratio
           :id="id"
           :checkedTypeName="processName"
           :opsetDetailId="activeItem"

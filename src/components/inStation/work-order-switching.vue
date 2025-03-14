@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { SwapOutlined } from '@ant-design/icons-vue'
 import { onMounted, reactive, ref, watch } from 'vue'
-import { getWorksheetListByWorkstationCode, inputSmkWorksheet } from '@/services/workstation.service'
+import { getRouteList, getWorksheetListByWorkstationCode, inputSmkWorksheet } from '@/services/workstation.service'
 import { message } from 'ant-design-vue'
+import { bindingRoute } from '@/services/in-station.service'
 
 const prop = defineProps({
   workstationMessage: {
@@ -84,12 +85,18 @@ const pullInLoading = ref(false);
 /**
  * 进站
  */
-function pullIn() {
+function pullIn(skip = false, routeCode?: string) {
+  console.log(selectWorkOrder.value.includes('YF'),  !skip);
+  if (selectWorkOrder.value.includes('YF') && !skip) {
+    queryProcessRoute();
+    return;
+  }
   pullInLoading.value = true;
   inputSmkWorksheet({
     worksheetCode: selectWorkOrder.value,
     equipmentCode: prop.workstationMessage.workstationCode,
     createUser: localStorage.username,
+    routeCode
   }).then(({ data: { code, msg } }) => {
     if (code == 200) {
       message.success('工单变更成功!');
@@ -113,6 +120,63 @@ function pullIn() {
     pullInLoading.value = false;
   })
 }
+// endregion
+
+
+// region 工艺路线选择
+// 工艺路线名称(模糊查询)
+const routeName = ref('');
+// 查询状态
+const searchLoading = ref(false);
+// 工艺路线列表
+const routeList = ref<any>([]);
+// 工艺路线抽屉是否显示
+const routeOpen = ref(false);
+// 当前选中的工艺路线
+const selectedRoute = ref<any>();
+
+/**
+ * 查询工艺路线
+ */
+function queryProcessRoute() {
+  searchLoading.value = true;
+  routeOpen.value = true;
+  getRouteList({
+    pageNum: 1,
+    pageSize: 500,
+    routeName: routeName.value,
+  }).then(({ data: {code, data, msg} }) => {
+    if (code == 200) {
+      routeList.value = data.list;
+    } else {
+      message.error(msg || '服务器发生错误, 请联系管理员!');
+    }
+  }).finally(() => {
+    searchLoading.value = false;
+  });
+}
+
+/**
+ * 选择工艺路线
+ */
+function bindingProcessRoute() {
+  pullInLoading.value = true;
+  bindingRoute({
+    worksheetCode: selectWorkOrder.value,
+    routeCode: selectedRoute.value,
+    workstationCode: prop.workstationMessage.workstationCode,
+  }).then(({ data: { code, msg } }) => {
+    if (code == 200) {
+      pullIn(true, selectedRoute.value);
+      routeOpen.value = false;
+    } else {
+      message.error(msg)
+    }
+  }).finally(() => {
+    pullInLoading.value = false;
+  });
+}
+
 // endregion
 
 watch(
@@ -167,7 +231,40 @@ onMounted(() => {
 
     <template #footer>
       <a-button style="margin-right: 8px" @click="open = false">取消</a-button>
-      <a-button type="primary" @click="pullIn" :loading="pullInLoading">变更工单</a-button>
+      <a-button type="primary" @click="pullIn(false)" :loading="pullInLoading">变更工单</a-button>
+    </template>
+  </a-drawer>
+
+
+
+
+  <a-drawer
+    v-model:open="routeOpen"
+    :footer-style="{ textAlign: 'right' }"
+    title="工艺路线选择"
+    placement="right"
+  >
+    <a-input-search
+      v-model:value="routeName"
+      placeholder="输入关键字进行查询"
+      enter-button="查询"
+      :loading="searchLoading"
+      @search="queryProcessRoute"
+    />
+    <div style="margin-top: 20px; max-height: 70%;overflow-y: auto;">
+      <a-radio-group v-model:value="selectedRoute">
+        <a-radio
+          v-for="(item, index) of routeList"
+          :style="radioStyle"
+          :value="item.routeCode"
+          :key="index"
+        >{{ item.routeName }}</a-radio>
+      </a-radio-group>
+    </div>
+
+    <template #footer>
+      <a-button style="margin-right: 8px" @click="routeOpen = false">取消</a-button>
+      <a-button type="primary" @click="bindingProcessRoute" :loading="pullInLoading" :disabled="!selectedRoute">确认选择</a-button>
     </template>
   </a-drawer>
 

@@ -106,7 +106,7 @@ function getMaterialsFun() {
   if (isSuccess) {
     submitLoading.value = true;
     let ob: any;
-    if (prop.workstationMessage?.workstationName.includes('抛光')) {
+    if (prop.workstationMessage?.workstationName.includes('抛光') || prop.workstationMessage?.workstationName.includes('湿磨')) {
       ob = getMaterials(params);
     }
     else if (prop.workstationMessage?.workstationName.includes('打包')) {

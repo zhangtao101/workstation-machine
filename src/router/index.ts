@@ -97,6 +97,11 @@ const router = createRouter({
       path: '/color',
       name: 'color',
       component: () => import('../views/color-view.vue')
+    },
+    {
+      path: '/materialConfirmation',
+      name: 'materialConfirmation',
+      component: () => import('../views/material-confirmation-view.vue')
     }
     /*{
       path: '/about',

@@ -57,6 +57,8 @@ declare module 'vue' {
     Login: typeof import('./src/components/login.vue')['default']
     MachineSummary: typeof import('./src/components/machine-summary.vue')['default']
     MachineSummaryCopy: typeof import('./src/components/machine-summary-copy.vue')['default']
+    MateriaBinRatio: typeof import('./src/components/inStation/materia-bin-ratio.vue')['default']
+    MaterialConfirmation: typeof import('./src/components/material-confirmation.vue')['default']
     MaterialMovement: typeof import('./src/components/material-movement.vue')['default']
     MixingConponent: typeof import('./src/components/mixing-conponent.vue')['default']
     MovingOperation: typeof import('./src/components/inStation/moving-operation.vue')['default']

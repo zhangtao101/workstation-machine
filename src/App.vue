@@ -167,6 +167,12 @@ onMounted(() => {
       label: '料仓库存查看',
       title: '料仓库存查看'
     });
+    items.value.push({
+      key: 'materialConfirmation',
+      icon: () => h(MailOutlined),
+      label: '压机工单用料确认',
+      title: '压机工单用料确认'
+    });
   }
   else if (equipmentName?.includes('制釉')) {
     items.value.push({

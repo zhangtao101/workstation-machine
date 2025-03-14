@@ -386,10 +386,13 @@ function feedingCheck() {
         checkLoading.value = true;
         smkFeedCheck(params).then(({ data: {code, data, msg} }: any) => {
           if (code == 200) {
-            message.success('操作成功')
-            data.forEach((_item: any, index: number) => {
-              formState.value[index].unFeedNumber = _item.unFeedNumber
-            })
+            message.success('操作成功');
+            if (prop.workstationMessage?.workstationName.includes('制浆')) {
+              data.forEach((_item: any, index: number) => {
+                formState.value[index].unFeedNumber = _item.unFeedNumber
+                formState.value[index].feedMumber = _item.feedMumber
+              })
+            }
             editItem.value.details = getRawMaterialData();
             close();
           } else if (code === 402) {

@@ -97,7 +97,7 @@ function inquiryTable() {
         workstationMessage.value = workstationSetRecord
         unitMessage.value = unit
         productOptions.value = [];
-        if (workstationMessage.value.workstationName.includes('抛光')) {
+        if (workstationMessage.value.workstationName.includes('抛光') || workstationMessage.value.workstationName.includes('湿磨')) {
           getProductByWorksheetAndBindingId({
             worksheetCode: sheetMessage.value.workSheetCode,
           }).then(({ data: {code, data, msg} }: any) => {

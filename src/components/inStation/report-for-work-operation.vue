@@ -359,7 +359,8 @@ function submit() {
             ob = worksheetWGReport(params)
           } else if (
             prop.workstationMessage?.workstationName &&
-            prop.workstationMessage?.workstationName.includes('抛光')
+            ( prop.workstationMessage?.workstationName.includes('抛光') ||
+            prop.workstationMessage?.workstationName.includes('湿磨') )
           ) {
             ob = worksheetFXReport(params)
           } else {
@@ -674,6 +675,7 @@ onMounted(() => {
                   label="入库批次号"
                   v-if="
                     workstationMessage?.workstationName.includes('抛光') ||
+                    workstationMessage?.workstationName.includes('湿磨') ||
                     workstationMessage?.workstationName.includes('打包')
                   "
                 >
@@ -819,7 +821,7 @@ onMounted(() => {
                   ></a-input-number>
                 </a-form-item>
               </a-col>
-              <a-col :span="6" v-if="workstationMessage?.workstationName.includes('抛光')">
+              <a-col :span="6" v-if="workstationMessage?.workstationName.includes('抛光') || workstationMessage?.workstationName.includes('湿磨')">
                 <a-form-item
                   label="等待数量"
                   :name="['details', index, 'details', i, 'waiteNumber']"
@@ -1006,7 +1008,7 @@ onMounted(() => {
           >
           <a-descriptions-item
             label="等待数量"
-            v-if="workstationMessage?.workstationName.includes('抛光')"
+            v-if="workstationMessage?.workstationName.includes('抛光') || workstationMessage?.workstationName.includes('湿磨')"
             >{{ item.waiteNumber }}{{ unitMessage }}</a-descriptions-item
           >
           <a-descriptions-item label="人时">{{ item.personTime }}小时</a-descriptions-item>

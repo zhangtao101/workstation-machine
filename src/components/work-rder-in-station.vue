@@ -179,12 +179,13 @@ const pullInLoading = ref(false);
 /**
  * 进站
  */
-function pullIn() {
+function pullIn(routeCode?: string) {
   pullInLoading.value = true;
   inputSmkWorksheet({
     worksheetCode: selectedProductCode.value,
     equipmentCode: workstation.value,
     createUser: localStorage.username,
+    routeCode
   }).then(({ data: { code, msg } }) => {
     if (code == 200) {
       message.success('工单进站成功!');
@@ -270,7 +271,7 @@ function bindingProcessRoute() {
     workstationCode: workstation.value,
   }).then(({ data: { code, msg } }) => {
     if (code == 200) {
-      pullIn();
+      pullIn(selectedRoute.value);
       routeOpen.value = false;
     } else {
       message.error(msg)
@@ -349,7 +350,7 @@ onMounted(() => {
                   <a-button
                     v-else
                     type="primary"
-                    @click="pullIn"
+                    @click="pullIn()"
                     :disabled="!selectedProductCode || isNotEdit"
                     :loading="pullInLoading"
                   >进站</a-button>

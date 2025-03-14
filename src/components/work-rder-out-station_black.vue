@@ -93,7 +93,7 @@ function inquiryTable() {
         sheetMessage.value = sheetStatusDTOs[0]
         workstationMessage.value = workstationSetRecord
         productOptions.value = [];
-        if (workstationMessage.value.workstationName.includes('抛光')) {
+        if (workstationMessage.value.workstationName.includes('抛光') || workstationMessage.value.workstationName.includes('湿磨')) {
           getProductByWorksheetAndBindingId({
             worksheetCode: sheetMessage.value.workSheetCode,
           }).then(({ data: {code, data, msg} }: any) => {
@@ -410,7 +410,7 @@ onMounted(() => {
                     </a-col>
                     <a-col :span="6">
                       <a-form-item
-                        v-if="workstationMessage.workstationName.includes('抛光')"
+                        v-if="workstationMessage.workstationName.includes('抛光') || workstationMessage.workstationName.includes('湿磨')"
                         label="待处理数量"
                         :name="[index, 'waiteWorkNumber']"
                         :rules="[{ required: true, message: '该项为必填项!' }]"

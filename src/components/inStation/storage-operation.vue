@@ -122,9 +122,8 @@ function init() {
       }
     }).catch((err) => {
       message.error({
-      content: `操作失败请联系管理员,${err.message ? err.message : err}`,
-
-    })
+        content: `操作失败请联系管理员,${err.message ? err.message : err}`,
+      })
     });
   }
 }
@@ -287,7 +286,7 @@ onMounted(() => {
         required: true,
         message: '该项为必填项'
       }"
-      v-if="processType == 7"
+      v-if="[7,8,10,11,13].includes(processType)"
     >
 <!--      <a-input-->
 <!--        v-model:value="storageEntryForm.batchCode"-->
@@ -344,7 +343,7 @@ onMounted(() => {
         required: true,
         message: '该项为必填项'
       }"
-      v-if="processType == 7"
+      v-if="[7,8,10,11,13].includes(processType)"
     >
       <a-input-number
         v-model:value="storageEntryForm.packageNumber"
