@@ -240,7 +240,6 @@ function delLine(index: number, i?: number) {
   Modal.confirm({
     title: '确定删除吗？',
     onOk() {
-      console.log(index, i, formState.value)
       if (i >= 0) {
         formState.value.details[index].personDetails.splice(i, 1)
       } else {
@@ -335,16 +334,17 @@ function submit() {
           formState.value.details.forEach((item: any) => {
             item.details.forEach((d: any) => {
               productCodes.push({
+                ...d,
                 personTime: formState.value.personTime,
                 equipTime: formState.value.equipTime,
                 classType: formState.value.classType,
                 reportTime: formState.value.reportTime.format('YYYY-MM-DD HH:mm:ss'),
                 productCode: item.productCode,
-                defectCode: item.defectCode || '',
-                ...d
+                defectCode: item.defectCode || ''
               })
             })
           })
+          console.log(productCodes)
           let ob: any
           const params = {
             taskCode: selectedRow.value.taskCode,
@@ -375,7 +375,7 @@ function submit() {
               message.error(`操作失败请联系管理员${msg}`)
             }
           })
-            .catch((err) => {
+            .catch((err: any) => {
               message.error({
                 content: `操作失败请联系管理员,${err.message ? err.message : err}`
               })

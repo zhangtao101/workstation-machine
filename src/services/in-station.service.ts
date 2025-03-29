@@ -292,6 +292,12 @@ export function getEquipCodeListByType(worksheetCode: any, bindingId: any, type:
   return axios.get(`${BASE_URL}workstation/op/getEquipCodeListByType?worksheetCode=${worksheetCode}&bindingId=${bindingId}&type=${type}`)
 }
 /**
+ * 查询当前已入库数
+ */
+export function getInWarehouseHistory(worksheetCode: any) {
+  return axios.get(`${BASE_URL}workstation/op/getInWarehouseHistory?worksheetCode=${worksheetCode}`)
+}
+/**
  * 获取流转操作的最新记录
  */
 export function getTurnRecordByParam(worksheetCode: any, bindingId: any) {

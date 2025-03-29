@@ -70,6 +70,10 @@ const typeOptions = ref<any>([
     label: '异常采集',
     value: -1
   },
+  {
+    label: '非生产上报',
+    value: 4
+  },
 ]);
 
 /**
@@ -108,13 +112,20 @@ function submit() {
           fileId.push(data)
         }
       })
-      submitLoading.value = true;
-      energyCatch({
+      const params = {
         ...formState.value,
         energyType: formState.value.catchDataType,
         catchUser: localStorage.username,
         fileId: fileId
-      }).then(({ data: {code, data, msg} }: any) => {
+      }
+      if (params.energyStartTime) {
+        params.energyStartTime = params.energyStartTime.format('YYYY-MM-DD HH:mm:ss')
+      }
+      if (params.energyEndTime) {
+        params.energyEndTime = params.energyEndTime.format('YYYY-MM-DD HH:mm:ss')
+      }
+      submitLoading.value = true;
+      energyCatch(params).then(({ data: {code, data, msg} }: any) => {
         if (code == 200) {
           message.success('提交成功');
           queryLog(formState.value.energyEquipCode);
@@ -181,6 +192,7 @@ function queryEquipCodeList(row: any) {
       if (selectOptions.value.length > 0) {
         activeKey.value = selectOptions.value[0].value
         formState.value.energyEquipCode = selectOptions.value[0].value
+        formState.value.energyEquipName = selectOptions.value[0].label
       }
     } else {
       message.error(`操作失败请联系管理员${msg}`)
@@ -212,6 +224,7 @@ function queryLog(equipCode: string) {
         // formState.value.catchDataType = data[0].energyType;
         formState.value.opType = data[0].opType;
         formState.value.errorCode = data[0].errorCode;
+        formState.value.errorName = data[0].errorName;
         formState.value.energyValue = data[0].energyValue;
       }
     } else {
@@ -222,6 +235,28 @@ function queryLog(equipCode: string) {
   }).finally(() => {
     logLoading.value = false;
   });
+}
+
+/**
+ * 能源变更, 计算变更后的数值
+ * @param item 需要计算的对象
+ */
+function energyChange(item: any) {
+  if (
+    (item.startEnergyValue && item.endEnergyValue) ||
+    (item.startEnergyValue === 0 && item.endEnergyValue === 0)
+  ) {
+    // 获取倍数
+    const multiple = (energyEquipCode: string) => {
+      const arr = energyEquipCode.split('-');
+      return Number.isNaN(arr[arr.length - 1] as string)
+        ? 1
+        : Number.parseInt(arr[arr.length - 1] as string, 10);
+    };
+    item.energyValue =
+      (item.endEnergyValue - item.startEnergyValue) *
+      multiple(item.energyEquipName);
+  }
 }
 // endregion
 
@@ -310,8 +345,13 @@ onMounted(() => {
         v-model:active-key="activeKey"
         tab-position="top"
         @change="(_value: any) => {
-        formRef.resetFields();
+        formState = {}
         formState.energyEquipCode = _value;
+        selectOptions.forEach((item: any) => {
+          if (item.value === _value) {
+            formState.energyEquipName = item.label;
+          }
+        })
         queryLog(_value)
       }"
       >
@@ -391,15 +431,47 @@ onMounted(() => {
           ></a-select>
         </a-form-item>
         <a-form-item
-          label="抄表读数"
-          name="energyValue"
+          label="抄表开始读数"
+          name="startEnergyValue"
           :rules="[{ required: true, message: '该项为必填项!' }]"
 
         >
+          <a-date-picker v-model:value="formState.energyStartTime" show-time placeholder="时间选择" style="vertical-align: top;" />
           <a-input-number
-            v-model:value="formState.energyValue"
+            v-model:value="formState.startEnergyValue"
             min="0"
+            @change="energyChange(formState)"
+            style="vertical-align: top;margin-left: 1em;"
           />
+        </a-form-item>
+        <a-form-item
+          label="抄表结束读数"
+          name="endEnergyValue"
+          :rules="[{ required: true, message: '该项为必填项!' }]"
+
+        >
+          <a-date-picker
+            v-model:value="formState.energyEndTime"
+            show-time
+            placeholder="时间选择"
+            style="vertical-align: top;"
+            :disabled-date="(current: any) => {
+              return current < formState.energyStartTime;
+            }"
+          />
+          <a-input-number
+            v-model:value="formState.endEnergyValue"
+            :min="formState.startEnergyValue || 0"
+            :disabled="!(formState.startEnergyValue || formState.startEnergyValue === 0)"
+            @change="energyChange(formState)"
+            style="vertical-align: top;margin-left: 1em;"
+          />
+        </a-form-item>
+        <a-form-item
+          label="能耗"
+
+        >
+          {{ formState.energyValue }}
         </a-form-item>
         <a-form-item
           label="备注"
@@ -442,6 +514,8 @@ onMounted(() => {
             <p>抄表读数: {{ item.energyValue }}</p>
             <p>异常类型: {{ item.errorName }}</p>
             <p>抄表时间: {{ item.catchTime }}</p>
+            <p>未绑定报工任务: {{ item.bindingName }}</p>
+            <p>开始读数: {{ item.startOrEndName }}</p>
           </a-timeline-item>
         </a-timeline>
       </a-spin>

@@ -57,3 +57,17 @@ export function sendProduceCheck(params: any) {
 export function sendProduct(params: any) {
   return axios.post(`${BASE_URL}plan/worksheet/sendProduct`, params)
 }
+/**
+ * 获取入库工单查询
+ * @param params 参数
+ */
+export function getWorksheetWarehouseList(params: any) {
+  return axios.get(`${BASE_URL}workstation/op/getWorksheetWarehouseList?${qs.stringify(params)}`)
+}
+/**
+ * 工单入库补录接口
+ * @param params 参数
+ */
+export function finishWorksheetInOut(params: any) {
+  return axios.post(`${BASE_URL}workstation/op/finishWorksheetInOut`, params)
+}

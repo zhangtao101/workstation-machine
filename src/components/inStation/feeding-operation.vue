@@ -119,7 +119,6 @@ function submit(type: 0 | 1) {
     } else {
       message.error({
         content: `操作失败请联系管理员${msg}`,
-
       })
     }
   }).catch((err: any) => {
@@ -250,6 +249,10 @@ function showFeed(row?: any) {
             label: item.warehouseCode,
             value: `${item.warehouseCode}&&${item.stockQuality}`
           })
+        });
+      } else {
+        formState.value.push({
+          unFeedNumber: 0
         });
       }
     }
@@ -396,6 +399,12 @@ function feedingCheck() {
             editItem.value.details = getRawMaterialData();
             close();
           } else if (code === 402) {
+            if (prop.workstationMessage?.workstationName.includes('制浆')) {
+              data.forEach((_item: any, index: number) => {
+                formState.value[index].unFeedNumber = _item.unFeedNumber
+                formState.value[index].feedMumber = _item.feedMumber
+              })
+            }
             Modal.confirm({
               title: '是否提交超领审批？',
               content: h(
@@ -638,7 +647,16 @@ onMounted(() => {
   <div style="max-width: calc(100vw - 270px);">
     <a-space direction="vertical" style="width: 100%">
       <a-space>
-        <a-button type="primary" @click="create()" v-if="workstationMessage?.workstationName.includes('制粉')">
+        <a-button
+          type="primary"
+          @click="create()"
+          v-if="
+            workstationMessage?.workstationName.includes('打包') ||
+            workstationMessage?.workstationName.includes('制粉') ||
+            workstationMessage?.workstationName.includes('制釉') ||
+            workstationMessage?.workstationName.includes('施釉')
+          "
+        >
           新增
         </a-button>
         <a-button
@@ -897,6 +915,7 @@ onMounted(() => {
               workstationMessage?.workstationName.includes('制釉') ||
               workstationMessage?.workstationName.includes('效果釉') ||
               workstationMessage?.workstationName.includes('施釉') ||
+              (editItem.created && workstationMessage?.workstationName.includes('打包')) ||
               workstationMessage?.workstationName.includes('制粉')"
             >
               <!-- 物料批次 -->

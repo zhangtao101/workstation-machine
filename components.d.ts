@@ -53,6 +53,8 @@ declare module 'vue' {
     Firing: typeof import('./src/components/firing.vue')['default']
     GetMaterialsOperation: typeof import('./src/components/inStation/get-materials-operation.vue')['default']
     InStationMain: typeof import('./src/components/inStation/in-station-main.vue')['default']
+    InventoryCompostition: typeof import('./src/components/inventory-compostition.vue')['default']
+    InventoryReplenishment: typeof import('./src/components/inventoryReplenishment.vue')['default']
     LayingOff: typeof import('./src/components/laying-off.vue')['default']
     Login: typeof import('./src/components/login.vue')['default']
     MachineSummary: typeof import('./src/components/machine-summary.vue')['default']

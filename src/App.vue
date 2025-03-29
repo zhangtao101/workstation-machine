@@ -145,6 +145,34 @@ onMounted(() => {
       label: '出库',
       title: '出库'
     });
+    items.value.push({
+      key: 'inventoryReplenishment',
+      icon: () => h(MailOutlined),
+      label: '入库补录',
+      title: '入库补录'
+    });
+  }
+  else if (equipmentName?.includes('打包')) {
+    items.value.push({
+      key: 'inventoryView',
+      icon: () => h(MailOutlined),
+      label: '库存查看',
+      title: '库存查看'
+    });
+    items.value.push({
+      key: 'inventoryReplenishment',
+      icon: () => h(MailOutlined),
+      label: '入库补录',
+      title: '入库补录'
+    });
+  }
+  else if (equipmentName?.includes('抛光')) {
+    items.value.push({
+      key: 'inventoryView',
+      icon: () => h(MailOutlined),
+      label: '查看中间库库存',
+      title: '查看中间库库存'
+    });
   }
   else if (equipmentName?.includes('制浆')) {
     items.value.push({
@@ -188,6 +216,14 @@ onMounted(() => {
       icon: () => h(MailOutlined),
       label: '色料库存查看',
       title: '色料库存查看'
+    });
+  }
+  else if (equipmentName?.includes('卧干')) {
+    items.value.push({
+      key: 'inventoryReplenishment',
+      icon: () => h(MailOutlined),
+      label: '入库补录',
+      title: '入库补录'
     });
   }
   message.config({

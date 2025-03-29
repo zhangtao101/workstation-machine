@@ -102,6 +102,16 @@ const router = createRouter({
       path: '/materialConfirmation',
       name: 'materialConfirmation',
       component: () => import('../views/material-confirmation-view.vue')
+    },
+    {
+      path: '/inventoryView',
+      name: 'inventoryView',
+      component: () => import('../views/inventory-view.vue')
+    },
+    {
+      path: '/inventoryReplenishment',
+      name: 'inventoryReplenishment',
+      component: () => import('../views/inventory-replenishment-view.vue')
     }
     /*{
       path: '/about',

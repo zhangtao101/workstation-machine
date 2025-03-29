@@ -4,7 +4,7 @@ import { onMounted, ref } from 'vue'
 import { getWorksheetByCode } from '@/services/workstation.service'
 import { message } from 'ant-design-vue'
 import {
-  getEquipCodeListByType,
+  getEquipCodeListByType, getInWarehouseHistory,
   getMaterials,
   getPackageInWarehouseList,
   getWarehouseCodeList,
@@ -15,6 +15,7 @@ import {
   worksheetFXInWarehouse,
   worksheetInWarehouse
 } from '@/services/in-station.service'
+import { getProductByWorksheetAndBindingId } from '@/services/machine-summary.service'
 
 const prop = defineProps({
   id: {
@@ -112,6 +113,8 @@ function submit() {
 // endregion
 
 // region 初始化
+// 面积系数
+const squareCoefficient = ref(1);
 function init() {
   if (prop.sheetMessage){
     getWorksheetByCode(prop.sheetMessage.workSheetCode).then(({ data: {code, data, msg} }: any) => {
@@ -125,6 +128,21 @@ function init() {
         content: `操作失败请联系管理员,${err.message ? err.message : err}`,
       })
     });
+  }
+  if (prop.unitMessage === '片') {
+    getProductByWorksheetAndBindingId({
+      worksheetCode: prop.sheetMessage?.workSheetCode
+    })
+      .then(({ data: { code, data, msg } }: any) => {
+        if (code == 200) {
+          squareCoefficient.value = data[0].conversionFaction ?? 1
+        }
+      })
+      .catch((err) => {
+        message.error({
+          content: `操作失败请联系管理员,${err.message ? err.message : err}`
+        })
+      })
   }
 }
 
@@ -160,6 +178,37 @@ function getWarehouseCodeLists(val: string) {
   });
 }
 // endregion
+
+/**
+ * 获取类型
+ */
+function getTypeNumber() {
+  if (prop.workstationMessage?.workstationCode.includes('ZJ')) {
+    return 1;
+  }
+  else if (prop.workstationMessage?.workstationCode.includes('ZF')) {
+    return 4;
+  }
+  else if (prop.workstationMessage?.workstationCode.includes('ZY')) {
+    return 3;
+  }
+  else if (prop.workstationMessage?.workstationCode.includes('CX')) {
+    return 5
+  }
+  else if (prop.workstationMessage?.workstationCode.includes('WG')) {
+    return 5;
+  }
+  else if (prop.workstationMessage?.workstationCode.includes('SY')) {
+    return 12;
+  }
+  else if (prop.workstationMessage?.workstationCode.includes('SC')) {
+    return 12;
+  }
+  else if (prop.workstationMessage?.workstationCode.includes('PG')) {
+    return 6;
+  }
+  return -1;
+}
 
 // region 获取批次
 
@@ -220,9 +269,31 @@ function getTargetDevice() {
   });
 }
 
+// 历史库存
+const historicalInventory = ref(0);
+/**
+ * 查询入库历史
+ */
+function queryInWarehouseHistory() {
+  getInWarehouseHistory(prop.sheetMessage?.workSheetCode).then(({ data: {code, data, msg} }: any) => {
+    if (code == 200) {
+      historicalInventory.value = data;
+    } else {
+      message.error(`操作失败请联系管理员${msg}`)
+    }
+  }).catch((err) => {
+    message.error({
+      content: `操作失败请联系管理员,${err.message ? err.message : err}`,
+    })
+  });
+}
+
+
+
 
 onMounted(() => {
   init();
+  queryInWarehouseHistory();
   if (prop.workstationMessage?.workstationName.includes('制粉')) {
     getTargetDevice()
   } else if (prop.workstationMessage?.workstationName.includes('打包')) {
@@ -250,7 +321,9 @@ onMounted(() => {
         required: true,
         message: '该项为必填项'
       }"
-      v-if="[7,6,10,12].indexOf(processType) == -1"
+      v-if="
+        processType === 13 ? [7,8,10].indexOf(getTypeNumber()) == -1 : [7,8,10].indexOf(processType) == -1
+      "
     >
       <a-select
         v-model:value="storageEntryForm.warehouseCode"
@@ -286,7 +359,9 @@ onMounted(() => {
         required: true,
         message: '该项为必填项'
       }"
-      v-if="[7,8,10,11,13].includes(processType)"
+      v-if="
+        processType === 13 ? [7,8,10,11].includes(getTypeNumber()) : [7,8,10,11].includes(processType)
+      "
     >
 <!--      <a-input-->
 <!--        v-model:value="storageEntryForm.batchCode"-->
@@ -307,6 +382,13 @@ onMounted(() => {
       </a-select>
     </a-form-item>
     <a-form-item
+      label="已入库数量"
+    >
+     <span style="margin-right: 1em;"> {{historicalInventory}} {{unitMessage}}</span>
+     <span v-if="unitMessage === 'KG'"> {{historicalInventory / 1000}} T</span>
+     <span v-if="unitMessage === '片'"> {{historicalInventory * squareCoefficient}} ㎡</span>
+    </a-form-item>
+    <a-form-item
       label="入库数量"
       name="number"
       :rules="{
@@ -323,7 +405,8 @@ onMounted(() => {
           margin: unitMessage === 'KG' ? '0 1em 1em 0' : '0',
         }"
         @Change="() => {
-          storageEntryForm.number_T = storageEntryForm.number / 1000;
+          storageEntryForm.number_T = (storageEntryForm.number / 1000).toFixed(3);
+          storageEntryForm.qualityNumber_pf = (storageEntryForm.number * squareCoefficient).toFixed(3);
         }"
       />
       <a-input-number
@@ -332,8 +415,16 @@ onMounted(() => {
         :min="0"
         v-if="unitMessage === 'KG'"
         @Change="() => {
-          storageEntryForm.number = storageEntryForm.number_T * 1000;
+          storageEntryForm.number = (storageEntryForm.number_T * 1000).toFixed(3);
         }"
+      />
+      <a-input-number
+        v-model:value="storageEntryForm.qualityNumber_pf"
+        addon-after="㎡"
+        :min="0"
+        v-if="unitMessage === '片'"
+        style="margin-left: 1em"
+        readonly
       />
     </a-form-item>
     <a-form-item
@@ -343,7 +434,9 @@ onMounted(() => {
         required: true,
         message: '该项为必填项'
       }"
-      v-if="[7,8,10,11,13].includes(processType)"
+      v-if="
+        processType === 13 ? [7,8,10,11].includes(getTypeNumber()) : [7,8,10,11].includes(processType)
+      "
     >
       <a-input-number
         v-model:value="storageEntryForm.packageNumber"
