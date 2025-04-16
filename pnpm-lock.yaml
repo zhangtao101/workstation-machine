@@ -72,8 +72,8 @@ importers:
         specifier: ^4.3.3
         version: 4.3.3(vue@3.5.1(typescript@5.4.5))
       vxe-table:
-        specifier: ^4.9.5
-        version: 4.9.5(vue@3.5.1(typescript@5.4.5))
+        specifier: ^4.12.2
+        version: 4.12.2(vue@3.5.1(typescript@5.4.5))
     devDependencies:
       '@rushstack/eslint-patch':
         specifier: ^1.8.0
@@ -863,6 +863,11 @@ packages:
 
   '@vxe-ui/core@4.0.17':
     resolution: {integrity: sha512-05lnGnFrZJnLSCiJbTqTXWjtlxmO7ew8/5a7f/yPwgdZ8WLY93nA8n0XDiQVFNBrGIFMrtvL+vX3+xpjaXrLHA==}
+    peerDependencies:
+      vue: ^3.2.0
+
+  '@vxe-ui/core@4.0.38':
+    resolution: {integrity: sha512-zQHcYUUsMUiDNi5buxP9AIz9Ru2BK5JXkKmtGZ5gjdr/nF8Nm/jcMcAdZXDmYAryn1BLka+ZTq83G++HkfWdBg==}
     peerDependencies:
       vue: ^3.2.0
 
@@ -1917,8 +1922,11 @@ packages:
   vxe-pc-ui@4.3.3:
     resolution: {integrity: sha512-KUQxR4x58g9TLasJF8BvR7ReVaILX4DVpHtBlLADv5OuvvE3Bjbv6g4MPghL4sk+7fc1ElsaX5mqeLPcz3iwDw==}
 
-  vxe-table@4.9.5:
-    resolution: {integrity: sha512-s4/5NX4coVYNXTCewatZ5q47Z47bpknE4HSvjG1tLhgirOQwbBqIInUJKbkgLTz0cNRQXWaBysxwIQawO/6UbA==}
+  vxe-pc-ui@4.5.7:
+    resolution: {integrity: sha512-jmIv+UkIS6e2qJZe11IbeVAqd0nKPJikrrTUzNecL0bNZ5KEloVlTtAX3J5UWeSvesEZ8mhN8Y9XZFp6w3W9Fg==}
+
+  vxe-table@4.12.2:
+    resolution: {integrity: sha512-X1uifAgEiIozvU3HVC4eDef2jcweEXDYnjIxb+La9DvYrz0fBgsQXvLSv3iCkLjsGCxKgBWgzzbpooXDrlh/Fg==}
 
   warning@4.0.3:
     resolution: {integrity: sha512-rpJyN222KWIvHJ/F53XSZv0Zl/accqHR8et1kpaMTD/fLCRxtV8iX8czMzY7sVZupTI3zcUTg8eycS2kNF9l6w==}
@@ -1943,6 +1951,9 @@ packages:
 
   xe-utils@3.5.32:
     resolution: {integrity: sha512-R8ZT2lRnRBQO3pchM1za/Aru+/29DVDWD/OmOFODWWGkiQYz0iVIr8Bq8uKXS6zMhEsSqVCrn46bXzfe/Agjcw==}
+
+  xe-utils@3.7.4:
+    resolution: {integrity: sha512-9yuCHLOU+og4OEkPWWtzrYk1Zt1hgN66U/NCJ0+vYJSx1MplBtoQRz8aEA+2RmCr3leLru98vQxNpw/vJsu/sg==}
 
   xml-name-validator@4.0.0:
     resolution: {integrity: sha512-ICP2e+jsHvAj2E2lIHxa5tjXRlKDJo4IdvPvCXbXQGdzSfmSpNVyIKMvoZHjDY9DP0zV17iI85o90vRFXNccRw==}
@@ -2766,6 +2777,12 @@ snapshots:
       dom-zindex: 1.0.6
       vue: 3.5.1(typescript@5.4.5)
       xe-utils: 3.5.32
+
+  '@vxe-ui/core@4.0.38(vue@3.5.1(typescript@5.4.5))':
+    dependencies:
+      dom-zindex: 1.0.6
+      vue: 3.5.1(typescript@5.4.5)
+      xe-utils: 3.7.4
 
   acorn-jsx@5.3.2(acorn@8.12.1):
     dependencies:
@@ -3794,9 +3811,15 @@ snapshots:
     transitivePeerDependencies:
       - vue
 
-  vxe-table@4.9.5(vue@3.5.1(typescript@5.4.5)):
+  vxe-pc-ui@4.5.7(vue@3.5.1(typescript@5.4.5)):
     dependencies:
-      vxe-pc-ui: 4.3.3(vue@3.5.1(typescript@5.4.5))
+      '@vxe-ui/core': 4.0.38(vue@3.5.1(typescript@5.4.5))
+    transitivePeerDependencies:
+      - vue
+
+  vxe-table@4.12.2(vue@3.5.1(typescript@5.4.5)):
+    dependencies:
+      vxe-pc-ui: 4.5.7(vue@3.5.1(typescript@5.4.5))
     transitivePeerDependencies:
       - vue
 
@@ -3817,6 +3840,8 @@ snapshots:
   xe-utils@3.5.30: {}
 
   xe-utils@3.5.32: {}
+
+  xe-utils@3.7.4: {}
 
   xml-name-validator@4.0.0: {}
 

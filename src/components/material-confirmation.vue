@@ -245,7 +245,9 @@ onMounted(() => {
         <vxe-column field="productCode" min-width="120" title="产品编号"></vxe-column>
         <vxe-column field="productName" min-width="280" title="产品名称"></vxe-column>
         <vxe-column field="workstationCode" min-width="280" title="工作站编号"></vxe-column>
-        <vxe-column field="workSheetPlanNumber" min-width="280" title="工单计划产量"></vxe-column>
+        <vxe-column field="workSheetPlanNumber" min-width="280" title="工单计划产量(M2)"></vxe-column>
+        <vxe-column field="reportNumber" min-width="150" title="实际压制量(M2)"></vxe-column>
+        <vxe-column field="dryweight" min-width="150" title="干坯重量"></vxe-column>
         <vxe-column min-width="250" title="操作" fixed="right">
           <template #default="{ row }">
             <a-button type="primary" @click="viewSurplusInventory(row)">
@@ -294,6 +296,7 @@ onMounted(() => {
           <vxe-column field="materialCode" min-width="140" title="料号"></vxe-column>
           <vxe-column field="materialName" min-width="180" title="物料名称"></vxe-column>
           <vxe-column field="warehouseCode" min-width="140" title="料仓号"></vxe-column>
+          <vxe-column field="feeduseNumber" min-width="140" title="领料量"></vxe-column>
           <vxe-column field="stockQuality" min-width="140" title="库存量"></vxe-column>
           <vxe-column field="unit" min-width="140" title="单位"></vxe-column>
           <vxe-column min-width="120" title="操作" fixed="right">

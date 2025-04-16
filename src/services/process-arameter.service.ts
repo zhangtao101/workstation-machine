@@ -157,3 +157,11 @@ export function clearWorksheetLcStock(params: any) {
 export function cxWorksheetAudit(params: any) {
   return axios.post(`${BASE_URL}workstation/op/cxWorksheetAudit`, params);
 }
+
+/**
+ * 获取采集列表
+ * @param params
+ */
+export function getEnergyTransactionHisory(params: any) {
+  return axios.get(`${BASE_URL}workstation/op/getEnergyTransactionHisory?${qs.stringify(params)}`);
+}

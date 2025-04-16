@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { message, Modal } from 'ant-design-vue'
 import {
+  getEnergyTransactionHisory,
   getReportHistory,
   getReportToDoList,
   listWordListByParentCode,
@@ -175,6 +176,8 @@ function close() {
   productCodes.value = []
   selectedRow.value = {}
   formState.value = []
+  energyConsumptionData.value = [];
+  selectedEnergyConsumptionData.value = [];
 }
 
 /**
@@ -317,6 +320,58 @@ function numberChange(item: any, type: number) {
   }
 }
 
+// region 能耗绑定
+// 能耗绑定抽屉是否显示
+const isShowBindingDrawer = ref(false);
+// 能耗数据
+const energyConsumptionData = ref<any>([])
+// 能耗数据
+const energyConsumptionDataLoading = ref<any>(false)
+// 选中的能耗数据
+const selectedEnergyConsumptionData = ref<any>([])
+// 表格对象
+const bindTable = ref();
+
+/**
+ * 显示绑定抽屉
+ */
+function displayBindingDrawer() {
+  isShowBindingDrawer.value = true;
+  getEnergyTransactionHisory({
+    worksheetCode:  selectedRow.value.worksheetCode
+  }).then(({ data: { code, data, msg } }: any) => {
+    if (code == 200) {
+      energyConsumptionData.value = data;
+      setTimeout(() => {
+        const rows: any = [];
+        energyConsumptionData.value.forEach((item: any) => {
+          if (selectedEnergyConsumptionData.value.includes(item.id)) {
+            rows.push(item);
+          }
+        })
+        bindTable.value.setCheckboxRow(rows, true);
+      }, 100)
+    } else {
+      message.error({
+        content: `操作失败请联系管理员${msg}`
+      })
+    }
+  });
+}
+
+function bind() {
+  selectedEnergyConsumptionData.value = [];
+  const rows = bindTable.value.getCheckboxRecords(true);
+  rows.forEach((row: any) => {
+    selectedEnergyConsumptionData.value.push(row.id)
+  })
+
+  isShowBindingDrawer.value = false;
+  energyConsumptionData.value = [];
+}
+
+// endregion
+
 const submitLoading = ref(false)
 /**
  * 提交
@@ -329,8 +384,14 @@ function submit() {
         title: '操作确认',
         content: '是否确认报工?',
         onOk() {
-          submitLoading.value = true
-          const productCodes: any = []
+          submitLoading.value = true;
+          const productCodes: any = [];
+          const catchArray: any = [];
+          selectedEnergyConsumptionData.value.forEach((item: any) => {
+            catchArray.push({
+              transcationId: item
+            })
+          })
           formState.value.details.forEach((item: any) => {
             item.details.forEach((d: any) => {
               productCodes.push({
@@ -340,17 +401,17 @@ function submit() {
                 classType: formState.value.classType,
                 reportTime: formState.value.reportTime.format('YYYY-MM-DD HH:mm:ss'),
                 productCode: item.productCode,
-                defectCode: item.defectCode || ''
+                defectCode: d.defectCode || '',
               })
             })
           })
-          console.log(productCodes)
           let ob: any
           const params = {
             taskCode: selectedRow.value.taskCode,
             worksheetCode: selectedRow.value.worksheetCode,
             bindingId: prop.id,
-            productCodes: productCodes
+            productCodes: productCodes,
+            catchArray,
           }
           if (
             prop.workstationMessage?.workstationName &&
@@ -616,6 +677,17 @@ onMounted(() => {
               readonly
             ></a-input-number>
           </a-form-item>
+        </a-col>
+      </a-row>
+      <a-row>
+        <a-col>
+          <a-button
+            type="primary"
+            @click="displayBindingDrawer"
+            style="margin: 1em 0;"
+          >
+            绑定能耗数据, 当前已绑定 {{ selectedEnergyConsumptionData.length }} 条
+          </a-button>
         </a-col>
       </a-row>
       <template v-for="(item, index) of formState.details" :key="index">
@@ -1020,6 +1092,43 @@ onMounted(() => {
     <template #footer>
       <a-button style="margin-right: 8px" @click="close">取消</a-button>
       <a-button type="primary" @click="submit" :loading="submitLoading">提交</a-button>
+    </template>
+  </a-drawer>
+  <a-drawer
+    v-model:visible="isShowBindingDrawer"
+    placement="top"
+    title="绑定能耗数据"
+    :height="500"
+    :footer-style="{ textAlign: 'right' }"
+  >
+    <vxe-table
+      :data="energyConsumptionData"
+      :loading="energyConsumptionDataLoading"
+      :height="300"
+      :checkbox-config="{labelField: 'id', highlight: true}"
+      ref="bindTable"
+    >
+      <vxe-column type="checkbox" width="120" title="ID"></vxe-column>
+      <vxe-column field="startTime" min-width="160" title="开始采集时间"></vxe-column>
+      <vxe-column field="endTime" min-width="160" title="结束采集时间"></vxe-column>
+      <vxe-column field="energyValue" min-width="160" title="能耗度数"></vxe-column>
+      <vxe-column field="startEnergyValue" min-width="160" title="开始仪表读数"></vxe-column>
+      <vxe-column field="endEnergyValue" min-width="160" title="结束仪表读数"></vxe-column>
+      <vxe-column field="energyEquipCode" min-width="160" title="仪表编号"></vxe-column>
+      <vxe-column field="worksheetCode" min-width="200" title="工单号"></vxe-column>
+      <vxe-column field="energyTypeName" min-width="160" title="能源类型"></vxe-column>
+      <vxe-column field="opTypeName" min-width="160" title="操作类型"></vxe-column>
+      <vxe-column field="remark" min-width="160" title="备注"></vxe-column>
+      <vxe-column field="catchUser" min-width="160" title="采集人员"></vxe-column>
+    </vxe-table>
+    <template #footer>
+      <a-space>
+        <a-button @click="() => {
+            isShowBindingDrawer = false;
+            energyConsumptionData = [];
+        }">取消</a-button>
+        <a-button type="primary" @click="bind">确定绑定</a-button>
+      </a-space>
     </template>
   </a-drawer>
 </template>

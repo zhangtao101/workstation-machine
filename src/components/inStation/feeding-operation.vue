@@ -227,6 +227,8 @@ function showFeed(row?: any) {
       });
       warehouseCodeList.value = [];
       editItem.value.batchCodes?.forEach((item: any) => {
+        item.labelFormmat = `${item.batchCode}(${item.areaCode})`;
+        item.valueFormmat = `${item.batchCode}&&${item.warehouseCode}&&${item.stockQuality}`;
         warehouseCodeList.value.push({
           label: `${item.warehouseCode}(${item.stockQuality})__${item.remake ?? ''}`,
           value: `${item.warehouseCode}&&${item.stockQuality}&&${item.areaCode ?? ''}&&${item.batchCode ?? ''}`
@@ -922,31 +924,29 @@ onMounted(() => {
               <a-col :span="12" v-if="editItem.materialTypeFlag">
                 <a-form-item
                   label="物料批次"
-                  :name="[index, 'batchCode']"
+                  :name="[index, 'labelFormmat']"
                   :rules="[{ required: true, message: '该项为必填项!' }]"
                 >
                   <a-select
-                    v-model:value="item.batchCode"
+                    v-model:value="item.labelFormmat"
                     show-search
                     placeholder="请选择"
                     style="width: 160px"
                     :options="editItem.batchCodes"
-                    :field-names="{ label: 'batchCode', value: 'batchCode' }"
+                    :field-names="{ label: 'labelFormmat', value: 'valueFormmat' }"
                     @change="(_v: any, _i: any) => {
                       /*item.waterNumber = _i.waterNumber;
                       item.areaCode = _i.areaCode;
                       item.warehouseCode = _i.warehouseCode;*/
                       if (_v) {
-                        let obj: any = {};
-                        editItem.batchCodes.forEach((i: any) => {
-                          if (i.batchCode === _v) {
-                            obj = i;
+                        if (_v) {
+                          const arr = _v.split('&&');
+                          if (arr) {
+                            item.batchCode = arr[0];
+                            item.warehouseCodeAndNumber = arr[1];
+                            item.warehouseCode = arr[1];
+                            item.stockQuality = arr[2];
                           }
-                        });
-                        if (obj) {
-                          item.warehouseCodeAndNumber = `${obj.warehouseCode}`;
-                          item.warehouseCode = obj.warehouseCode;
-                          item.stockQuality = obj.stockQuality;
                         }
                       }
                     }"

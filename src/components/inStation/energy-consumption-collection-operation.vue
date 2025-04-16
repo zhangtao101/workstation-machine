@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import { onMounted, ref } from 'vue'
 import { getEnergyToDoList } from '@/services/in-station.service'
 import { message } from 'ant-design-vue'
@@ -11,16 +10,16 @@ import {
   getEnergyHisory,
   listWordListByParentCode
 } from '@/services/process-arameter.service'
-
+import dayjs from 'dayjs'
 
 const prop = defineProps({
   id: {
     type: Number,
-    required: true,
+    required: true
   },
   opsetDetailId: {
     type: Number,
-    required: true,
+    required: true
   },
   workstationMessage: {
     type: Object,
@@ -37,29 +36,29 @@ const prop = defineProps({
     required: false,
     default: []
   }
-});
+})
 
 // region 表格数据
 // 表格数据
-const tableData = ref<any>([]);
+const tableData = ref<any>([])
 // 表格加载状态
-const tableLoading = ref(false);
+const tableLoading = ref(false)
 
 // endregion
 
 // region 采集
 // 是否显示采集对话框
-const isShow = ref(false);
+const isShow = ref(false)
 // 表单
-const formRef = ref<any>();
-const formState = ref<any>({  });
+const formRef = ref<any>()
+const formState = ref<any>({})
 // 上传文件列表
-const fileList = ref<any>([]);
+const fileList = ref<any>([])
 // 当前活跃的key
-const activeKey = ref<any>('');
+const activeKey = ref<any>('')
 
 // 设备选项
-const selectOptions = ref<any>([]);
+const selectOptions = ref<any>([])
 // 操作类型选项
 const typeOptions = ref<any>([
   {
@@ -73,168 +72,186 @@ const typeOptions = ref<any>([
   {
     label: '非生产上报',
     value: 4
-  },
-]);
+  }
+])
+
+const editItem = ref<any>({})
 
 /**
  * 显示采集抽屉
  * @param row
  */
 function showGatherIngredients(row: any) {
-  isShow.value = true;
-  formState.value = row;
-  queryEquipCodeList(row);
+  isShow.value = true
+  editItem.value = { ...row }
+  formState.value = { ...row }
+  queryEquipCodeList(row)
+
 }
 
 /**
  * 关闭抽屉
  */
 function close() {
-  isShow.value = false;
-  formState.value = {};
-  init();
+  isShow.value = false
+  formState.value = {}
+  init()
 }
 
 /**
  * 提交状态
  */
-const submitLoading = ref(false);
+const submitLoading = ref(false)
 
 /**
  * 提交
  */
 function submit() {
-  formRef.value.validate()
-    .then(() => {
-      const fileId: any = [];
-      fileList.value.forEach(({ response: {code, data} }: any) => {
-        if (code === 200) {
-          fileId.push(data)
-        }
-      })
-      const params = {
-        ...formState.value,
-        energyType: formState.value.catchDataType,
-        catchUser: localStorage.username,
-        fileId: fileId
+  formRef.value.validate().then(() => {
+    const fileId: any = []
+    fileList.value.forEach(({ response: { code, data } }: any) => {
+      if (code === 200) {
+        fileId.push(data)
       }
-      if (params.energyStartTime) {
-        params.energyStartTime = params.energyStartTime.format('YYYY-MM-DD HH:mm:ss')
-      }
-      if (params.energyEndTime) {
-        params.energyEndTime = params.energyEndTime.format('YYYY-MM-DD HH:mm:ss')
-      }
-      submitLoading.value = true;
-      energyCatch(params).then(({ data: {code, data, msg} }: any) => {
+    })
+    const params = {
+      ...formState.value,
+      energyType: formState.value.catchDataType,
+      catchUser: localStorage.username,
+      fileId: fileId,
+      bindingId: prop.id
+    }
+    if (params.energyStartTime) {
+      params.energyStartTime = params.energyStartTime.format('YYYY-MM-DD HH:mm:ss')
+    }
+    if (params.energyEndTime) {
+      params.energyEndTime = params.energyEndTime.format('YYYY-MM-DD HH:mm:ss')
+    }
+    submitLoading.value = true
+    energyCatch(params)
+      .then(({ data: { code, data, msg } }: any) => {
         if (code == 200) {
-          message.success('提交成功');
-          queryLog(formState.value.energyEquipCode);
+          message.success('提交成功')
+          queryLog(formState.value.energyEquipCode, formState.value.energyEquipName)
         } else {
           message.error(`操作失败请联系管理员${msg}`)
         }
-      }).catch((err) => {
-        message.error({
-          content: `操作失败请联系管理员,${err.message ? err.message : err}`,
-        });
-        submitLoading.value = false;
-      }).finally(() => {
-        submitLoading.value = false;
       })
-    });
+      .catch((err) => {
+        message.error({
+          content: `操作失败请联系管理员,${err.message ? err.message : err}`
+        })
+        submitLoading.value = false
+      })
+      .finally(() => {
+        submitLoading.value = false
+      })
+  })
 }
 // endregion
 
 // region 异常类型
-const errorOptions = ref<any>([]);
+const errorOptions = ref<any>([])
 function queryErrorCode() {
-  listWordListByParentCode('NHCJYC').then(({ data: {code, data, msg} }: any) => {
-    if (code == 200) {
-      errorOptions.value = [];
-      data.forEach((item: any) => {
-        errorOptions.value.push({
-          label: item.wordName,
-          value: item.wordCode,
-        });
-      })
-    } else {
-      message.error(`操作失败请联系管理员${msg}`)
-    }
-  }).catch((err) => {
-    message.error({
-      content: `操作失败请联系管理员,${err.message ? err.message : err}`,
-
+  listWordListByParentCode('NHCJYC')
+    .then(({ data: { code, data, msg } }: any) => {
+      if (code == 200) {
+        errorOptions.value = []
+        data.forEach((item: any) => {
+          errorOptions.value.push({
+            label: item.wordName,
+            value: item.wordCode
+          })
+        })
+      } else {
+        message.error(`操作失败请联系管理员${msg}`)
+      }
     })
-  })
+    .catch((err) => {
+      message.error({
+        content: `操作失败请联系管理员,${err.message ? err.message : err}`
+      })
+    })
 }
 
 // endregion
 
 // region 仪表查询
 // 仪表查询
-const equipCodeListLoading = ref(false);
+const equipCodeListLoading = ref(false)
 function queryEquipCodeList(row: any) {
-  equipCodeListLoading.value = true;
+  equipCodeListLoading.value = true
   getEnergyEquipCodeList({
     worksheetCode: prop.sheetMessage?.workSheetCode,
     bindingId: prop.id,
-    taskCode: row.catchCode,
-  }).then(({ data: {code, data, msg} }: any) => {
-    if (code == 200) {
-      selectOptions.value = [];
-      data.forEach((item: any) => {
-        selectOptions.value.push({
-          label: `${item.equipmentName}`,
-          value: item.equipmentCode
+    taskCode: row.catchCode
+  })
+    .then(({ data: { code, data, msg } }: any) => {
+      if (code == 200) {
+        selectOptions.value = []
+        data.forEach((item: any) => {
+          selectOptions.value.push({
+            label: `${item.equipmentName}`,
+            value: item.equipmentCode
+          })
         })
-      })
-      queryLog(selectOptions.value[0].value)
+        if (selectOptions.value.length > 0) {
+          activeKey.value = selectOptions.value[0].value
+          formState.value.energyEquipCode = selectOptions.value[0].value
+          formState.value.energyEquipName = selectOptions.value[0].label
 
-      if (selectOptions.value.length > 0) {
-        activeKey.value = selectOptions.value[0].value
-        formState.value.energyEquipCode = selectOptions.value[0].value
-        formState.value.energyEquipName = selectOptions.value[0].label
+          queryLog(formState.value.energyEquipCode, formState.value.energyEquipName)
+        }
+      } else {
+        message.error(`操作失败请联系管理员${msg}`)
       }
-    } else {
-      message.error(`操作失败请联系管理员${msg}`)
-    }
-  }).catch((err) => {
-    message.error({
-      content: `操作失败请联系管理员,${err.message ? err.message : err}`,
-
     })
-  }).finally(() => {
-    equipCodeListLoading.value = false;
-  });
+    .catch((err) => {
+      message.error({
+        content: `操作失败请联系管理员,${err.message ? err.message : err}`
+      })
+    })
+    .finally(() => {
+      equipCodeListLoading.value = false
+    })
 }
 // 日志加载状态
-const logLoading = ref(false);
+const logLoading = ref(false)
 // 日志
-const logArr = ref<any>([]);
-function queryLog(equipCode: string) {
-  logLoading.value = true;
+const logArr = ref<any>([])
+function queryLog(equipCode: string, energyEquipName: string) {
+  logLoading.value = true
   getEnergyHisory({
     equipCode,
     worksheetCode: prop.sheetMessage?.workSheetCode,
-    bindingId: prop.id,
-  }).then(({ data: {code, data, msg} }: any) => {
-    if (code == 200) {
-      logArr.value = data;
-      if (data.length > 0) {
-        /*formState.value = data[0];*/
-        // formState.value.catchDataType = data[0].energyType;
-        formState.value.opType = data[0].opType;
-        formState.value.errorCode = data[0].errorCode;
-        formState.value.errorName = data[0].errorName;
-        formState.value.energyValue = data[0].energyValue;
+    bindingId: prop.id
+  })
+    .then(({ data: { code, data, msg } }: any) => {
+      if (code == 200) {
+        logArr.value = data
+        if (data.length > 0) {
+          /*formState.value = data[0];*/
+          // formState.value.catchDataType = data[0].energyType;
+          formState.value.opType = data[0].opType
+          formState.value.errorCode = data[0].errorCode
+          formState.value.errorName = data[0].errorName
+        } else {
+          formState.value = {
+            ...editItem.value,
+            energyEquipCode: equipCode,
+            energyEquipName
+          }
+        }
+      } else {
+        message.error(`操作失败请联系管理员${msg}`)
       }
-    } else {
-      message.error(`操作失败请联系管理员${msg}`)
-    }
-  }).catch((err) => {
-    message.error(`操作失败请联系管理员,${err.message? err.message : err}`);
-  }).finally(() => {
-    logLoading.value = false;
-  });
+    })
+    .catch((err) => {
+      message.error(`操作失败请联系管理员,${err.message ? err.message : err}`)
+    })
+    .finally(() => {
+      logLoading.value = false
+    })
 }
 
 /**
@@ -248,52 +265,60 @@ function energyChange(item: any) {
   ) {
     // 获取倍数
     const multiple = (energyEquipCode: string) => {
-      const arr = energyEquipCode.split('-');
+      const arr = energyEquipCode.split('-')
       return Number.isNaN(arr[arr.length - 1] as string)
         ? 1
-        : Number.parseInt(arr[arr.length - 1] as string, 10);
-    };
+        : Number.parseInt(arr[arr.length - 1] as string, 10)
+    }
     item.energyValue =
-      (item.endEnergyValue - item.startEnergyValue) *
-      multiple(item.energyEquipName);
+      ((item.endEnergyValue - item.startEnergyValue) * multiple(item.energyEquipName)).toFixed(2);
+  }
+}
+
+function dynamicValidation(timeKey: string, valueKey: string) {
+  return async (_rule: any, _value: any) => {
+    if (formState.value[timeKey] && formState.value[valueKey] >= 0) {
+      return Promise.resolve();
+    } else {
+      return Promise.reject('改项为必填项999!');
+    }
   }
 }
 // endregion
 
-
 // region 初始化
 
 function init() {
-  tableLoading.value = true;
+  tableLoading.value = true
   getEnergyToDoList({
     workstationCode: prop.workstationMessage?.workstationCode,
     worksheetCode: prop.sheetMessage?.workSheetCode,
     bindingId: prop.id,
-    opsetDetailId: prop.opsetDetailId,
-  }).then(({ data: {code, data, msg} }: any) => {
-    if (code == 200) {
-      tableData.value = data;
-    } else {
-      message.error(`操作失败请联系管理员${msg}`)
-    }
-  }).catch((err) => {
-    message.error({
-      content: `操作失败请联系管理员,${err.message ? err.message : err}`,
-
+    opsetDetailId: prop.opsetDetailId
+  })
+    .then(({ data: { code, data, msg } }: any) => {
+      if (code == 200) {
+        tableData.value = data
+      } else {
+        message.error(`操作失败请联系管理员${msg}`)
+      }
     })
-  }).finally(() => {
-    tableLoading.value = false;
-  });
+    .catch((err) => {
+      message.error({
+        content: `操作失败请联系管理员,${err.message ? err.message : err}`
+      })
+    })
+    .finally(() => {
+      tableLoading.value = false
+    })
 }
 
 onMounted(() => {
-  init();
-  queryErrorCode();
-});
+  init()
+  queryErrorCode()
+})
 
 // endregion
-
-
 </script>
 
 <template>
@@ -307,12 +332,14 @@ onMounted(() => {
     :style="{
       'max-width': `calc(100vw - 250px)`
     }"
-    :rowClassName="({ row }: any) => {
-      if (row.catchStatus === 1 && row.nowFlag) {
-        return 'completed';
+    :rowClassName="
+      ({ row }: any) => {
+        if (row.catchStatus === 1 && row.nowFlag) {
+          return 'completed'
+        }
+        return row.nowFlag ? 'toBeCompleted' : 'nowFlag'
       }
-      return row.nowFlag ? 'toBeCompleted' : 'nowFlag'
-    }"
+    "
   >
     <vxe-column type="seq" width="60"></vxe-column>
     <vxe-column field="catchCode" min-width="120" title="采集任务编号"></vxe-column>
@@ -327,7 +354,8 @@ onMounted(() => {
           status="primary"
           @click="showGatherIngredients(row)"
           :disabled="!row.nowFlag"
-        >采集</vxe-button>
+          >采集</vxe-button
+        >
       </template>
     </vxe-column>
   </vxe-table>
@@ -344,26 +372,25 @@ onMounted(() => {
       <a-tabs
         v-model:active-key="activeKey"
         tab-position="top"
-        @change="(_value: any) => {
-        formState = {}
-        formState.energyEquipCode = _value;
-        selectOptions.forEach((item: any) => {
-          if (item.value === _value) {
-            formState.energyEquipName = item.label;
+        @change="
+          (_value: any) => {
+            formState = { ...editItem }
+            formState.energyEquipCode = _value
+            selectOptions.forEach((item: any) => {
+              if (item.value === _value) {
+                formState.energyEquipName = item.label
+              }
+            });
+            queryLog(_value, formState.energyEquipName);
           }
-        })
-        queryLog(_value)
-      }"
+        "
       >
-        <a-tab-pane
-          v-for="(item) of selectOptions"
-          :key="item.value"
-        >
+        <a-tab-pane v-for="item of selectOptions" :key="item.value">
           <template #tab>
             <!--          :class="{have_been_added: index===1}"-->
-            <span >
-            {{  item.label }}
-          </span>
+            <span>
+              {{ item.label }}
+            </span>
           </template>
         </a-tab-pane>
       </a-tabs>
@@ -378,7 +405,6 @@ onMounted(() => {
           label="仪表编号"
           name="energyEquipCode"
           :rules="[{ required: true, message: '该项为必填项!' }]"
-
         >
           <a-select
             v-model:value="formState.energyEquipCode"
@@ -389,7 +415,8 @@ onMounted(() => {
             <a-select-option
               v-for="(item, index) of selectOptions"
               :key="index"
-              :value="item.value">
+              :value="item.value"
+            >
               {{ item.label }}
             </a-select-option>
           </a-select>
@@ -398,93 +425,104 @@ onMounted(() => {
           label="操作类型"
           name="opType"
           :rules="[{ required: true, message: '该项为必填项!' }]"
-
         >
           <a-select
             v-model:value="formState.opType"
             show-search
             placeholder="请选择"
             :options="typeOptions"
-            @change="(value: any) => {
-            if (value === 1) {
-              formState.errorCode = errorOptions[0].value;
-              formState.errorName = errorOptions[0].label;
-            }
-          }"
+            @change="
+              (value: any) => {
+                if (value === 1) {
+                  formState.errorCode = errorOptions[0].value
+                  formState.errorName = errorOptions[0].label
+                }
+              }
+            "
           ></a-select>
         </a-form-item>
         <a-form-item
           label="异常类型"
           name="errorCode"
           :rules="[{ required: true, message: '该项为必填项!' }]"
-
         >
           <a-select
             v-model:value="formState.errorCode"
             show-search
             placeholder="请选择"
             :options="errorOptions"
-            @change="(_value: any, _item: any) => {
-            formState.errorCode = _item.value;
-            formState.errorName = _item.label;
-          }"
+            @change="
+              (_value: any, _item: any) => {
+                formState.errorCode = _item.value
+                formState.errorName = _item.label
+              }
+            "
           ></a-select>
         </a-form-item>
         <a-form-item
           label="抄表开始读数"
           name="startEnergyValue"
-          :rules="[{ required: true, message: '该项为必填项!' }]"
-
+          :rules="[
+            {
+              required: true,
+              message: '该项为必填项!' ,
+              validator: dynamicValidation('energyStartTime', 'startEnergyValue')
+            }
+          ]"
         >
-          <a-date-picker v-model:value="formState.energyStartTime" show-time placeholder="时间选择" style="vertical-align: top;" />
+          <a-date-picker
+            v-model:value="formState.energyStartTime"
+            show-time
+            placeholder="时间选择"
+            style="vertical-align: top"
+          />
           <a-input-number
             v-model:value="formState.startEnergyValue"
             min="0"
             @change="energyChange(formState)"
-            style="vertical-align: top;margin-left: 1em;"
+            style="vertical-align: top; margin-left: 1em"
           />
         </a-form-item>
         <a-form-item
           label="抄表结束读数"
           name="endEnergyValue"
-          :rules="[{ required: true, message: '该项为必填项!' }]"
-
+          :rules="[
+            {
+              required: true,
+              message: '该项为必填项!',
+              validator: dynamicValidation('energyEndTime', 'endEnergyValue')
+            }]"
         >
           <a-date-picker
             v-model:value="formState.energyEndTime"
             show-time
             placeholder="时间选择"
-            style="vertical-align: top;"
-            :disabled-date="(current: any) => {
-              return current < formState.energyStartTime;
-            }"
+            style="vertical-align: top"
+            :disabled="!formState.energyStartTime"
+            :disabled-date="
+              (current: any) => {
+                return current < dayjs(formState.energyStartTime.format('YYYY-MM-DD 00:00:00'))
+              }
+            "
           />
           <a-input-number
             v-model:value="formState.endEnergyValue"
             :min="formState.startEnergyValue || 0"
             :disabled="!(formState.startEnergyValue || formState.startEnergyValue === 0)"
             @change="energyChange(formState)"
-            style="vertical-align: top;margin-left: 1em;"
+            style="vertical-align: top; margin-left: 1em"
           />
         </a-form-item>
-        <a-form-item
-          label="能耗"
-
-        >
-          {{ formState.energyValue }}
-        </a-form-item>
-        <a-form-item
-          label="备注"
-
-        >
-          <a-input
-            v-model:value="formState.remark"
+        <a-form-item label="能耗">
+          <a-input-number
+            v-model:value="formState.energyValue"
+            min="0"
           />
         </a-form-item>
-        <a-form-item
-          label="图片"
-          name="energyValue"
-        >
+        <a-form-item label="备注">
+          <a-input v-model:value="formState.remark" />
+        </a-form-item>
+        <a-form-item label="图片" name="energyValue">
           <a-upload
             v-model:file-list="fileList"
             :action="BASE_URL + '/process/productSop/fileUpload'"
@@ -497,8 +535,10 @@ onMounted(() => {
             </a-button>
           </a-upload>
         </a-form-item>
-        <a-form-item :wrapper-col="{offset: 6}">
-          <a-button type="primary" style="width: 100%;" @click="submit" :loading="submitLoading">提交</a-button>
+        <a-form-item :wrapper-col="{ offset: 6 }">
+          <a-button type="primary" style="width: 100%" @click="submit" :loading="submitLoading"
+            >提交</a-button
+          >
         </a-form-item>
       </a-form>
     </a-spin>
@@ -507,7 +547,7 @@ onMounted(() => {
       <a-spin :spinning="logLoading">
         <a-timeline>
           <a-timeline-item
-            v-for="(item) of logArr"
+            v-for="item of logArr"
             :color="item.errorCode === 'SCZZ' ? 'green' : 'red'"
             :key="item.id"
           >

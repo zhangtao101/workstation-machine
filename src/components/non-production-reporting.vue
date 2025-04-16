@@ -113,13 +113,20 @@ function submitSourceOfEnergy() {
         fileId.push(data)
       }
     })
-    unProduceReport({
+    const params = {
       type: 1,
       ...sourceOfEnergyFormState.value,
       fileId: fileId,
       catchUser: localStorage.username,
       workstationCode: localStorage.equipmentCode,
-    }).then(({ data: {code, data, msg} }: any) => {
+    };
+    if (params.energyStartTime) {
+      params.energyStartTime = params.energyStartTime.format('YYYY-MM-DD HH:mm:ss')
+    }
+    if (params.energyEndTime) {
+      params.energyEndTime = params.energyEndTime.format('YYYY-MM-DD HH:mm:ss')
+    }
+    unProduceReport(params).then(({ data: {code, data, msg} }: any) => {
       if (code == 200) {
         message.success(`操作成功!`);
         sourceOfEnergyForm.value.resetFields();
@@ -241,6 +248,11 @@ function inquiryTable() {
 const logArr = ref<any>([]);
 
 function queryLog() {
+  for (const item of selectOptions.value) {
+    if (sourceOfEnergyFormState.value.energyEquipCode == item.value) {
+      sourceOfEnergyFormState.value.energyEquipName = item.label;
+    }
+  }
   getUnProduceReportHistory({
     equipCode: sourceOfEnergyFormState.value.energyEquipCode,
   }).then(({ data: {code, data, msg} }: any) => {
@@ -256,6 +268,30 @@ function queryLog() {
   }).catch((err) => {
     message.error(`操作失败请联系管理员,${err.message? err.message : err}`);
   })
+}
+
+
+/**
+ * 能源变更, 计算变更后的数值
+ * @param item 需要计算的对象
+ */
+function energyChange(item: any) {
+  if (
+    (item.startEnergyValue && item.endEnergyValue) ||
+    (item.startEnergyValue === 0 && item.endEnergyValue === 0)
+  ) {
+    // 获取倍数
+    const multiple = (energyEquipCode: string) => {
+      console.log(energyEquipCode);
+      const arr = energyEquipCode.split('-');
+      return Number.isNaN(arr[arr.length - 1] as string)
+        ? 1
+        : Number.parseInt(arr[arr.length - 1] as string, 10);
+    };
+    item.energyValue =
+      (item.endEnergyValue - item.startEnergyValue) *
+      multiple(item.energyEquipName);
+  }
 }
 
 // endregion
@@ -353,7 +389,6 @@ onMounted(() => {
               label="采集能源"
               name="energyType"
               :rules="[{ required: true, message: '该项为必填项!' }]"
-
             >
               <a-select
                 v-model:value="sourceOfEnergyFormState.energyType"
@@ -394,14 +429,60 @@ onMounted(() => {
               }"
               ></a-select>
             </a-form-item>
-            <a-form-item
+
+<!--            <a-form-item
               label="抄表读数"
               name="energyValue"
               :rules="[{ required: true, message: '该项为必填项!' }]"
 
             >
               <a-input-number :min="0" v-model:value="sourceOfEnergyFormState.energyValue" />
+            </a-form-item>-->
+
+            <a-form-item
+              label="抄表开始读数"
+              name="startEnergyValue"
+              :rules="[{ required: true, message: '该项为必填项!' }]"
+
+            >
+              <a-date-picker v-model:value="sourceOfEnergyFormState.energyStartTime" show-time placeholder="时间选择" style="vertical-align: top;" />
+              <a-input-number
+                v-model:value="sourceOfEnergyFormState.startEnergyValue"
+                min="0"
+                @change="energyChange(sourceOfEnergyFormState)"
+                style="vertical-align: top;margin-left: 1em;"
+              />
             </a-form-item>
+            <a-form-item
+              label="抄表结束读数"
+              name="endEnergyValue"
+              :rules="[{ required: true, message: '该项为必填项!' }]"
+
+            >
+              <a-date-picker
+                v-model:value="sourceOfEnergyFormState.energyEndTime"
+                show-time
+                placeholder="时间选择"
+                style="vertical-align: top;"
+                :disabled-date="(current: any) => {
+              return current < sourceOfEnergyFormState.energyStartTime;
+            }"
+              />
+              <a-input-number
+                v-model:value="sourceOfEnergyFormState.endEnergyValue"
+                :min="sourceOfEnergyFormState.startEnergyValue || 0"
+                :disabled="!(sourceOfEnergyFormState.startEnergyValue || sourceOfEnergyFormState.startEnergyValue === 0)"
+                @change="energyChange(sourceOfEnergyFormState)"
+                style="vertical-align: top;margin-left: 1em;"
+              />
+            </a-form-item>
+            <a-form-item
+              label="能耗"
+
+            >
+              {{ sourceOfEnergyFormState.energyValue }}
+            </a-form-item>
+
             <a-form-item
               label="备注"
             >
