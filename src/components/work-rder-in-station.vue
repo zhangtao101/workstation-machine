@@ -342,16 +342,15 @@ onMounted(() => {
                       <a-spin size="small" />
                     </template>
                   </a-select>
+<!--                  <a-button-->
+<!--                    v-if="selectedProduct && selectedProduct.workSheetCode?.includes('YF')"-->
+<!--                    type="primary"-->
+<!--                    @click="queryProcessRoute"-->
+<!--                  >工艺路线选择</a-button>-->
+<!--                  :disabled="!selectedProductCode || isNotEdit"-->
                   <a-button
-                    v-if="selectedProduct && selectedProduct.workSheetCode?.includes('YF')"
-                    type="primary"
-                    @click="queryProcessRoute"
-                  >工艺路线选择</a-button>
-                  <a-button
-                    v-else
                     type="primary"
                     @click="pullIn()"
-                    :disabled="!selectedProductCode || isNotEdit"
                     :loading="pullInLoading"
                   >进站</a-button>
                 </a-space>

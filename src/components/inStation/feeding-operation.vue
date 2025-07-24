@@ -228,7 +228,7 @@ function showFeed(row?: any) {
       warehouseCodeList.value = [];
       editItem.value.batchCodes?.forEach((item: any) => {
         item.labelFormmat = `${item.batchCode}(${item.areaCode})`;
-        item.valueFormmat = `${item.batchCode}&&${item.warehouseCode}&&${item.stockQuality}`;
+        item.valueFormmat = `${item.batchCode}&&${item.warehouseCode}&&${item.stockQuality}&&${item.areaCode}`;
         warehouseCodeList.value.push({
           label: `${item.warehouseCode}(${item.stockQuality})__${item.remake ?? ''}`,
           value: `${item.warehouseCode}&&${item.stockQuality}&&${item.areaCode ?? ''}&&${item.batchCode ?? ''}`
@@ -357,6 +357,7 @@ function feedingCheck() {
     .then(() => {
       const params: any = [];
       formState.value.forEach((item: any) => {
+        console.log(item);
         if (
           prop.workstationMessage?.workstationName.includes('制粉') ||
           prop.workstationMessage?.workstationName.includes('施釉') ||
@@ -946,6 +947,7 @@ onMounted(() => {
                             item.warehouseCodeAndNumber = arr[1];
                             item.warehouseCode = arr[1];
                             item.stockQuality = arr[2];
+                            item.areaCode = arr[3];
                           }
                         }
                       }
@@ -1004,6 +1006,8 @@ onMounted(() => {
                 </a-form-item>
               </a-col>
             </a-row>
+
+
             <a-row>
               <a-col :span="8" v-if="workstationMessage?.workstationName.includes('制浆')">
                 <a-form-item

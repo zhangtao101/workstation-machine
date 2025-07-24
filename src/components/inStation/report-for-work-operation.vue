@@ -119,6 +119,12 @@ function showReportForWork(row: any) {
   selectedRowData.value = JSON.parse(row.reportData)['报工内容设置']
   productCodes.value = []
 
+  if (
+    prop.workstationMessage?.workstationName.includes('烧成') ||
+    prop.workstationMessage?.workstationName.includes('抛光')) {
+    formState.value.energyFlag = 1;
+  }
+
   queryLog(row)
   queryTime()
   getProductByWorksheetAndBindingId({
@@ -239,7 +245,7 @@ function addLine(type: number, item?: any) {
  * @param index
  * @param i
  */
-function delLine(index: number, i?: number) {
+function delLine(index: number, i = -1) {
   Modal.confirm({
     title: '确定删除吗？',
     onOk() {
@@ -377,82 +383,99 @@ const submitLoading = ref(false)
  * 提交
  */
 function submit() {
+  // 调用表单验证方法
   formRef.value
     .validate()
     .then(() => {
+      // 如果表单验证通过，弹出确认对话框
       Modal.confirm({
-        title: '操作确认',
-        content: '是否确认报工?',
-        onOk() {
+        title: '操作确认', // 对话框标题
+        content: '是否确认报工?', // 对话框内容
+        onOk() { // 点击确认按钮时的回调函数
+          // 设置提交状态为加载中
           submitLoading.value = true;
+
+          // 初始化两个数组，用于存储产品代码和捕获数据
           const productCodes: any = [];
           const catchArray: any = [];
+
+          // 遍历选中的能耗数据，将每个数据项的 ID 添加到 catchArray 中
           selectedEnergyConsumptionData.value.forEach((item: any) => {
             catchArray.push({
               transcationId: item
             })
           })
+
+          // 遍历表单数据中的详情部分，将每个产品代码和缺陷代码等信息添加到 productCodes 中
           formState.value.details.forEach((item: any) => {
             item.details.forEach((d: any) => {
               productCodes.push({
-                ...d,
-                personTime: formState.value.personTime,
-                equipTime: formState.value.equipTime,
-                classType: formState.value.classType,
-                reportTime: formState.value.reportTime.format('YYYY-MM-DD HH:mm:ss'),
-                productCode: item.productCode,
-                defectCode: d.defectCode || '',
+                ...d, // 展开当前详情数据
+                personTime: formState.value.personTime, // 添加人工时间
+                equipTime: formState.value.equipTime, // 添加设备时间
+                classType: formState.value.classType, // 添加班次类型
+                reportTime: formState.value.reportTime.format('YYYY-MM-DD HH:mm:ss'), // 添加报工时间，格式化为指定格式
+                productCode: item.productCode, // 添加产品代码
+                defectCode: d.defectCode || '', // 添加缺陷代码，如果没有则为空字符串
               })
             })
           })
-          let ob: any
+
+          // 初始化一个变量，用于存储 API 请求的结果
+          let ob: any;
+
+          // 构造请求参数
           const params = {
-            taskCode: selectedRow.value.taskCode,
-            worksheetCode: selectedRow.value.worksheetCode,
-            bindingId: prop.id,
-            productCodes: productCodes,
-            catchArray,
+            taskCode: selectedRow.value.taskCode, // 任务代码
+            worksheetCode: selectedRow.value.worksheetCode, // 工作表代码
+            bindingId: prop.id, // 绑定 ID
+            productCodes: productCodes, // 产品代码数组
+            catchArray, // 捕获数据数组
           }
+
+          // 根据工作站名称判断调用不同的 API
           if (
-            prop.workstationMessage?.workstationName &&
-            prop.workstationMessage?.workstationName.includes('卧干')
+            prop.workstationMessage?.workstationName && // 检查工作站名称是否存在
+            prop.workstationMessage?.workstationName.includes('卧干') // 判断是否包含“卧干”
           ) {
-            ob = worksheetWGReport(params)
+            ob = worksheetWGReport(params); // 调用卧干相关的报工 API
           } else if (
-            prop.workstationMessage?.workstationName &&
-            ( prop.workstationMessage?.workstationName.includes('抛光') ||
-            prop.workstationMessage?.workstationName.includes('湿磨') )
+            prop.workstationMessage?.workstationName && // 检查工作站名称是否存在
+            ( prop.workstationMessage?.workstationName.includes('抛光') || // 判断是否包含“抛光”
+              prop.workstationMessage?.workstationName.includes('湿磨') ) // 或者“湿磨”
           ) {
-            ob = worksheetFXReport(params)
+            ob = worksheetFXReport(params); // 调用抛光或湿磨相关的报工 API
           } else {
-            ob = worksheetReport(params)
+            ob = worksheetReport(params); // 调用默认的报工 API
           }
+
+          // 处理 API 请求结果
           ob.then(({ data: { code, data, msg } }: any) => {
-            if (code == 200) {
-              message.success('提交成功')
-              close()
-              init()
-            } else {
-              message.error(`操作失败请联系管理员${msg}`)
+            if (code == 200) { // 如果返回状态码为 200，表示成功
+              message.success('提交成功'); // 弹出成功提示
+              close(); // 关闭当前页面或弹窗
+              init(); // 重新初始化数据
+            } else { // 如果返回状态码不是 200，表示失败
+              message.error(`操作失败请联系管理员${msg}`); // 弹出错误提示
             }
           })
-            .catch((err: any) => {
+            .catch((err: any) => { // 捕获请求异常
               message.error({
-                content: `操作失败请联系管理员,${err.message ? err.message : err}`
+                content: `操作失败请联系管理员,${err.message ? err.message : err}` // 弹出异常提示
               })
             })
-            .finally(() => {
-              submitLoading.value = false
+            .finally(() => { // 无论成功或失败，最后执行
+              submitLoading.value = false; // 关闭提交状态的加载
             })
         },
-        onCancel() {
-          message.warning('已取消!')
+        onCancel() { // 点击取消按钮时的回调函数
+          message.warning('已取消!'); // 弹出取消提示
         },
-        class: 'test'
+        class: 'test' // 对话框的自定义类名
       })
     })
-    .catch((error: any) => {
-      console.log('error', error)
+    .catch((error: any) => { // 捕获表单验证异常
+      console.log('error', error); // 在控制台打印错误信息
     })
 }
 
@@ -676,6 +699,26 @@ onMounted(() => {
               :addon-after="unitMessage"
               readonly
             ></a-input-number>
+          </a-form-item>
+        </a-col>
+
+        <!--   有无能耗     -->
+        <a-col
+          :span="6"
+          v-if="
+            workstationMessage?.workstationName.includes('烧成') ||
+            workstationMessage?.workstationName.includes('抛光')
+          "
+        >
+          <a-form-item
+            label="有无能耗"
+            name="energyFlag"
+            :rules="[{ required: true, message: '该项为必填项!' }]"
+          >
+            <a-radio-group v-model:value="formState.energyFlag" :options="[
+              { label: '有', value: 1 },
+              { label: '无', value: 2 },
+            ]" />
           </a-form-item>
         </a-col>
       </a-row>
