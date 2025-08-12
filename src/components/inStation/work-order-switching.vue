@@ -86,11 +86,10 @@ const pullInLoading = ref(false);
  * 进站
  */
 function pullIn(skip = false, routeCode?: string) {
-  console.log(selectWorkOrder.value.includes('YF'),  !skip);
-  if (selectWorkOrder.value.includes('YF') && !skip) {
+  /*if (selectWorkOrder.value.includes('YF') && !skip) {
     queryProcessRoute();
     return;
-  }
+  }*/
   pullInLoading.value = true;
   inputSmkWorksheet({
     worksheetCode: selectWorkOrder.value,

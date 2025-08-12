@@ -430,6 +430,7 @@ function submit() {
             worksheetCode: selectedRow.value.worksheetCode, // 工作表代码
             bindingId: prop.id, // 绑定 ID
             productCodes: productCodes, // 产品代码数组
+            energyFlag: formState.value.energyFlag,
             catchArray, // 捕获数据数组
           }
 
@@ -684,7 +685,7 @@ onMounted(() => {
           </a-form-item>
         </a-col>
         <!--   出窑数     -->
-        <a-col
+                  <a-col
           :span="6"
           v-if="
             workstationMessage?.workstationName.includes('烧成') &&
@@ -707,7 +708,8 @@ onMounted(() => {
           :span="6"
           v-if="
             workstationMessage?.workstationName.includes('烧成') ||
-            workstationMessage?.workstationName.includes('抛光')
+            workstationMessage?.workstationName.includes('抛光') ||
+            workstationMessage?.workstationName.includes('湿磨')
           "
         >
           <a-form-item
@@ -922,7 +924,7 @@ onMounted(() => {
                   />
                 </a-form-item>
               </a-col>
-              <a-col :span="6" v-if="workstationMessage?.workstationName.includes('卧干')">
+              <a-col :span="6" v-if="workstationMessage?.workstationName.includes('成型')">
                 <a-form-item
                   label="单片干坯重量"
                   :name="['details', index, 'details', i, 'dryWeight']"
