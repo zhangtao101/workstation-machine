@@ -17,6 +17,13 @@ export function listWarehouseRecord(params: any) {
   return axios.get(`${BASE_URL}workstation/op/listWarehouseRecord?${qs.stringify(params)}`, )
 }
 /**
+ * 库存查询
+ * @param params 参数
+ */
+export function listWarehouseStock(params: any) {
+  return axios.get(`${BASE_URL}workstation/op/listWarehouseStock?${qs.stringify(params)}`, )
+}
+/**
  * 查询工单
  * @param params 参数
  */

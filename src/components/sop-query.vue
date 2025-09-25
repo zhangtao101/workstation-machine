@@ -8,18 +8,18 @@ import { message } from 'ant-design-vue'
 import { listFileNameByWorksheetCode, listWorksheetByIp } from '@/services/sop-query.service'
 import { BASE_URL } from '@/services/config'
 //引入VueOfficeDocx组件
-import VueOfficeDocx from '@vue-office/docx'
+import VueOfficeDocx from '@vue-office/docx/lib/v3/vue-office-docx.mjs'
 //引入相关样式
-import '@vue-office/docx/lib/index.css'
+import '@vue-office/docx/lib/v3/index.css'
 
 //引入VueOfficeExcel组件
-import VueOfficeExcel from '@vue-office/excel'
+import VueOfficeExcel from '@vue-office/excel/lib/v3/vue-office-excel.mjs'
 //引入相关样式
-import '@vue-office/excel/lib/index.css'
+import '@vue-office/excel/lib/v3/index.css'
 
 
 //引入VueOfficePdf组件
-import VueOfficePdf from '@vue-office/pdf'
+import VueOfficePdf from '@vue-office/pdf/lib/v3/vue-office-pdf.mjs'
 
 
 import qs from 'qs'

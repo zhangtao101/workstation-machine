@@ -135,7 +135,8 @@ function showReportForWork(row: any) {
         data.forEach((item: any) => {
           productCodes.value.push({
             label: `${item.productCode}-${item.productName}`,
-            value: item.productCode
+            value: item.productCode,
+            conversionFaction: item.conversionFaction ? Number.parseFloat(item.conversionFaction) : 1
           })
         })
       }
@@ -271,14 +272,25 @@ function delDetailLine(index: number, i: number) {
   })
 }
 
-// 面积系数
-const squareCoefficient = ref(1)
+/**
+ * 产品编号变更
+ * @param detail
+ */
+function productCodeChange(detail: any) {
+  return (_value: any, item: any) => {
+    detail.conversionFaction = item.conversionFaction;
+    detail.details = [];
+    addLine(3, detail);
+  }
+}
+
 /**
  * 报工数量改变
  * @param item 当前报工元素
  * @param type 输入类型
+ * @param squareCoefficient 转换系数
  */
-function numberChange(item: any, type: number) {
+function numberChange(item: any, type: number, squareCoefficient: number) {
   item.reportNumber = item.reportNumber || 0
   item.qualityNumber = item.qualityNumber || 0
   item.unqualityNumber = item.unqualityNumber || 0
@@ -298,9 +310,9 @@ function numberChange(item: any, type: number) {
         item.reportNumber_T = (item.reportNumber / 1000).toFixed(3)
         item.unqualityNumber_T = (item.unqualityNumber / 1000).toFixed(3)
       } else if (prop.unitMessage === '片') {
-        item.qualityNumber_pf = (item.qualityNumber * squareCoefficient.value).toFixed(3)
-        item.reportNumber_pf = (item.reportNumber * squareCoefficient.value).toFixed(3)
-        item.unqualityNumber_pf = (item.unqualityNumber * squareCoefficient.value).toFixed(3)
+        item.qualityNumber_pf = (item.qualityNumber * squareCoefficient).toFixed(3)
+        item.reportNumber_pf = (item.reportNumber * squareCoefficient).toFixed(3)
+        item.unqualityNumber_pf = (item.unqualityNumber * squareCoefficient).toFixed(3)
       }
       break
     case 2:
@@ -318,9 +330,9 @@ function numberChange(item: any, type: number) {
         item.reportNumber = item.reportNumber_T * 1000
         item.unqualityNumber = item.unqualityNumber_T * 1000
       } else if (prop.unitMessage === '片') {
-        item.qualityNumber_pf = (item.qualityNumber * squareCoefficient.value).toFixed(3)
-        item.reportNumber_pf = (item.reportNumber * squareCoefficient.value).toFixed(3)
-        item.unqualityNumber_pf = (item.unqualityNumber * squareCoefficient.value).toFixed(3)
+        item.qualityNumber_pf = (item.qualityNumber * squareCoefficient).toFixed(3)
+        item.reportNumber_pf = (item.reportNumber * squareCoefficient).toFixed(3)
+        item.unqualityNumber_pf = (item.unqualityNumber * squareCoefficient).toFixed(3)
       }
       break
   }
@@ -530,24 +542,6 @@ function init() {
     .finally(() => {
       tableLoading.value = false
     })
-
-  if (prop.unitMessage === '片') {
-    getProductByWorksheetAndBindingId({
-      worksheetCode: prop.sheetMessage?.workSheetCode
-    })
-      .then(({ data: { code, data, msg } }: any) => {
-        if (code == 200) {
-          console.log(data)
-          // todo 等待返回面积系数
-          squareCoefficient.value = data[0].conversionFaction ?? 1
-        }
-      })
-      .catch((err) => {
-        message.error({
-          content: `操作失败请联系管理员,${err.message ? err.message : err}`
-        })
-      })
-  }
 }
 
 onMounted(() => {
@@ -754,6 +748,7 @@ onMounted(() => {
                   show-search
                   placeholder="请选择"
                   :options="productCodes"
+                  @Change="(val: any, i: any) => productCodeChange(item)(val, i)"
                 ></a-select>
               </a-form-item>
             </a-col>
@@ -841,7 +836,9 @@ onMounted(() => {
                     placeholder="良品数量"
                     :addon-after="unitMessage"
                     :min="0"
-                    @change="numberChange(detail, 1)"
+                    @change="numberChange(detail, 1, item.conversionFaction)"
+                    style="width: 100%;"
+                    :disabled="!item.productCode"
                   ></a-input-number>
                   <a-input-number
                     v-model:value="detail.qualityNumber_T"
@@ -849,8 +846,9 @@ onMounted(() => {
                     addon-after="T"
                     :min="0"
                     v-if="unitMessage === 'KG'"
-                    style="margin-top: 1em"
-                    @Change="numberChange(detail, 2)"
+                    style="margin-top: 1em; width: 100%"
+                    @Change="numberChange(detail, 2, item.conversionFaction)"
+                    :disabled="!item.productCode"
                   />
                   <a-input-number
                     v-model:value="detail.qualityNumber_pf"
@@ -873,7 +871,9 @@ onMounted(() => {
                     placeholder="废品数量"
                     :addon-after="unitMessage"
                     :min="0"
-                    @change="numberChange(detail, 1)"
+                    @change="numberChange(detail, 1, item.conversionFaction)"
+                    style="width: 100%;"
+                    :disabled="!item.productCode"
                   ></a-input-number>
                   <a-input-number
                     v-model:value="detail.unqualityNumber_T"
@@ -881,8 +881,9 @@ onMounted(() => {
                     addon-after="T"
                     :min="0"
                     v-if="unitMessage === 'KG'"
-                    style="margin-top: 1em"
-                    @change="numberChange(detail, 2)"
+                    style="margin-top: 1em; width: 100%"
+                    @change="numberChange(detail, 2, item.conversionFaction)"
+                    :disabled="!item.productCode"
                   />
                   <a-input-number
                     v-model:value="detail.unqualityNumber_pf"
@@ -902,7 +903,8 @@ onMounted(() => {
                     :addon-after="unitMessage"
                     :min="0"
                     readonly
-                    @change="numberChange(detail, 1)"
+                    @change="numberChange(detail, 1, item.conversionFaction)"
+                    style="width: 100%;"
                   ></a-input-number>
                   <a-input-number
                     v-model:value="detail.reportNumber_T"
@@ -911,8 +913,8 @@ onMounted(() => {
                     :min="0"
                     readonly
                     v-if="unitMessage === 'KG'"
-                    style="margin-top: 1em"
-                    @Change="numberChange(detail, 2)"
+                    style="margin-top: 1em; width: 100%"
+                    @Change="numberChange(detail, 2, item.conversionFaction)"
                   />
                   <a-input-number
                     v-model:value="detail.reportNumber_pf"
@@ -1000,7 +1002,9 @@ onMounted(() => {
                   v-model:value="detail.qualityNumber"
                   placeholder="良品数量"
                   :addon-after="unitMessage"
-                  @Change="numberChange(detail, 1)"
+                  @Change="numberChange(detail, 1, item.conversionFaction)"
+                  style="width: 100%;"
+                  :disabled="!item.productCode"
                 ></a-input-number>
                 <a-input-number
                   v-model:value="detail.qualityNumber_T"
@@ -1008,8 +1012,9 @@ onMounted(() => {
                   addon-after="T"
                   :min="0"
                   v-if="unitMessage === 'KG'"
-                  style="margin-top: 1em"
-                  @Change="numberChange(detail, 2)"
+                  style="margin-top: 1em; width: 100%"
+                  @Change="numberChange(detail, 2, item.conversionFaction)"
+                  :disabled="!item.productCode"
                 />
                 <a-input-number
                   v-model:value="item.qualityNumber_pf"
@@ -1032,7 +1037,9 @@ onMounted(() => {
                   placeholder="废品数量"
                   :addon-after="unitMessage"
                   :min="0"
-                  @change="numberChange(detail, 1)"
+                  @change="numberChange(detail, 1, item.conversionFaction)"
+                  style="width: 100%;"
+                  :disabled="!item.productCode"
                 ></a-input-number>
                 <a-input-number
                   v-model:value="detail.unqualityNumber_T"
@@ -1040,8 +1047,9 @@ onMounted(() => {
                   addon-after="T"
                   :min="0"
                   v-if="unitMessage === 'KG'"
-                  style="margin-top: 1em"
-                  @change="numberChange(detail, 2)"
+                  style="margin-top: 1em; width: 100%"
+                  @change="numberChange(detail, 2, item.conversionFaction)"
+                  :disabled="!item.productCode"
                 />
                 <a-input-number
                   v-model:value="detail.unqualityNumber_pf"
@@ -1064,7 +1072,8 @@ onMounted(() => {
                   v-model:value="detail.reportNumber"
                   placeholder="报工数量"
                   :addon-after="unitMessage"
-                  @Change="numberChange(detail, 1)"
+                  @change="numberChange(detail, 1, item.conversionFaction)"
+                  style="width: 100%;"
                   readonly
                 ></a-input-number>
                 <a-input-number
@@ -1073,8 +1082,8 @@ onMounted(() => {
                   addon-after="T"
                   :min="0"
                   v-if="unitMessage === 'KG'"
-                  style="margin-top: 1em"
-                  @Change="numberChange(detail, 2)"
+                  style="margin-top: 1em; width: 100%"
+                  @change="numberChange(detail, 2, item.conversionFaction)"
                   readonly
                 />
                 <a-input-number

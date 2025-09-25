@@ -166,12 +166,20 @@ onMounted(() => {
       title: '入库补录'
     });
   }
-  else if (equipmentName?.includes('抛光')) {
+  else if (equipmentName?.includes('抛光') || equipmentName?.includes('湿磨')) {
     items.value.push({
       key: 'inventoryView',
       icon: () => h(MailOutlined),
       label: '查看中间库库存',
       title: '查看中间库库存'
+    });
+  }
+  else if (equipmentName?.includes('施釉')) {
+    items.value.push({
+      key: 'inventoryView',
+      icon: () => h(MailOutlined),
+      label: '库存查看',
+      title: '库存查看'
     });
   }
   else if (equipmentName?.includes('制浆')) {
@@ -180,6 +188,12 @@ onMounted(() => {
       icon: () => h(MailOutlined),
       label: '浆料移动',
       title: '浆料移动'
+    });
+    items.value.push({
+      key: 'inventoryView',
+      icon: () => h(MailOutlined),
+      label: '库存查看',
+      title: '库存查看'
     });
   }
   else if (equipmentName?.includes('制粉')) {
@@ -208,6 +222,12 @@ onMounted(() => {
       icon: () => h(MailOutlined),
       label: '浆料移动',
       title: '浆料移动'
+    });
+    items.value.push({
+      key: 'inventoryView',
+      icon: () => h(MailOutlined),
+      label: '库存查看',
+      title: '库存查看'
     });
   }
   else if (equipmentName?.includes('制色')) {

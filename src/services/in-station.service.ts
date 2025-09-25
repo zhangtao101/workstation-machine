@@ -41,6 +41,12 @@ export function getBatchListByWorksheetCode(worksheetCode: any) {
 export function listWordListByParentCode() {
   return axios.get(`${BASE_USER_URL}sys/word/listWordListByParentCode/LYZPLX`)
 }
+/**
+ * 抛光上砖展示历史记录
+ */
+export function getAllOutWarehouseList(worksheetCode: string) {
+  return axios.get(`${BASE_URL}workstation/op/getAllOutWarehouseList?worksheetCode=${worksheetCode}`)
+}
 
 /**
  * 领料
@@ -186,9 +192,10 @@ export function smkFeedCheck(params: any) {
 /**
  * 加料内容获取(粉料新增)
  * @param materialCode 参数
+ * @param worksheetCode 参数
  */
-export function getWarehouseByMaterialCode(materialCode: any) {
-  return axios.get(`${BASE_URL}workstation/op/getWarehouseByMaterialCode?materialCode=${materialCode}`)
+export function getWarehouseByMaterialCode(materialCode: any, worksheetCode: string) {
+  return axios.get(`${BASE_URL}workstation/op/getWarehouseByMaterialCode?materialCode=${materialCode}&worksheetCode=${worksheetCode}`)
 }
 /**
  * 物料获取

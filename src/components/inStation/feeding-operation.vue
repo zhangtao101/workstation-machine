@@ -185,7 +185,7 @@ function create() {
  */
 function queryLibraryLocation() {
   if (editItem.value.materialCode) {
-    getWarehouseByMaterialCode(editItem.value.materialCode).then(({ data: {code, data, msg} }: any) => {
+    getWarehouseByMaterialCode(editItem.value.materialCode, prop.sheetMessage?.workSheetCode).then(({ data: {code, data, msg} }: any) => {
       if (code == 200) {
         console.log(data);
         if (data && data.length > 0) {
@@ -392,15 +392,38 @@ function feedingCheck() {
         checkLoading.value = true;
         smkFeedCheck(params).then(({ data: {code, data, msg} }: any) => {
           if (code == 200) {
-            message.success('操作成功');
-            if (prop.workstationMessage?.workstationName.includes('制浆')) {
-              data.forEach((_item: any, index: number) => {
-                formState.value[index].unFeedNumber = _item.unFeedNumber
-                formState.value[index].feedMumber = _item.feedMumber
+            // 判断盘盈数量是否大于0
+            let isError = false;
+            if (data && data.length > 0) {
+              data.forEach((item: any) => {
+                if (item.unFeedNumber > 0) {
+                  isError = true;
+                }
               })
             }
-            editItem.value.details = getRawMaterialData();
-            close();
+            // 成功方法
+            const success = () => {
+              message.success('操作成功');
+              if (prop.workstationMessage?.workstationName.includes('制浆')) {
+                data.forEach((_item: any, index: number) => {
+                  formState.value[index].unFeedNumber = _item.unFeedNumber
+                  formState.value[index].feedMumber = _item.feedMumber
+                })
+              }
+              editItem.value.details = getRawMaterialData();
+              close();
+            }
+            if (!isError) {
+              success();
+            } else {
+              Modal.confirm({
+                title: '当前加料存在盘盈数, 请确认!',
+                onOk() {
+                  success();
+                },
+              });
+            }
+
           } else if (code === 402) {
             if (prop.workstationMessage?.workstationName.includes('制浆')) {
               data.forEach((_item: any, index: number) => {

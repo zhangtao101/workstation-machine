@@ -1,9 +1,12 @@
 <script lang="ts" setup>
-
 import { onMounted, ref } from 'vue'
 import { SearchOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
-import { listWarehouseRecord, outWarehouseRecord } from '@/services/firing.service'
+import {
+  listWarehouseRecord,
+  listWarehouseStock,
+  outWarehouseRecord
+} from '@/services/firing.service'
 import { type VxeTablePropTypes } from 'vxe-pc-ui'
 import { humanLogin, humanLogout } from '@/services/machine-summary.service'
 
@@ -24,84 +27,46 @@ const editConfig = ref<VxeTablePropTypes.EditConfig>({
   mode: 'cell'
 })
 // 设备名称
-const equipmentName = localStorage.getItem('equipmentName');
+const equipmentCode = localStorage.getItem('equipmentCode')
+
+const pageSize = ref(20);
+const pageNumber = ref(1);
+const total = ref(0);
 
 /**
  * 查询表格数据
  */
 function query() {
   const params = {
-    ...queryParams.value,
+    ...queryParams.value
   }
-  if (equipmentName?.includes('抛光')) {
+  /*if (equipmentName?.includes('抛光') || equipmentName?.includes('湿磨')) {
     params.warehouseCode = 'JP'
     params.areaCode = 'JP'
-  }
+  }*/
+  params.workstationCode = equipmentCode;
+  params.pageSize = pageSize.value;
+  params.pageNum = pageNumber.value;
   tableLoading.value = true
-  listWarehouseRecord(params).then(({ data: {code, data, msg} }) => {
-    if (code == 200) {
-      tableData.value = data
-    } else {
-      message.error(`操作失败请联系管理员${msg}`)
-    }
-  }).catch((err) => {
-    message.error({
-      content: `操作失败请联系管理员,${err.message ? err.message : err}`,
-
-    })
-  }).finally(() => {
-    tableLoading.value = false
-  })
-}
-
-/**
- * 出库
- * @param row
- * @param i
- */
-function deliveryFromStorage(row: any, i: number = 0) {
-  if (row.number) {
-    const params=  {
-      worksheetCode: row.worksheetCode,
-      bindingId: '',
-      batchCode: row.batchCode,
-      number: row.number,
-      packageNumber: 0,
-      warehouseCode: 'JP',
-      inUser: localStorage.username,
-      workstationCode: localStorage.equipmentCode,
-    };
-    row.submitLoading = true;
-    outWarehouseRecord(params).then(({ data }) => {
-      if (data.code == 200) {
-        message.success(`操作成功!`);
-        query()
+  listWarehouseStock(params)
+    .then(({ data: { code, data: { dataList, total: num}, msg } }) => {
+      if (code == 200) {
+        tableData.value = dataList;
+        total.value = num;
       } else {
-        message.error({
-          content: `操作失败请联系管理员${data.msg}`,
-
-        })
+        message.error(`操作失败请联系管理员${msg}`)
       }
-    }).catch((err) => {
+    })
+    .catch((err) => {
       message.error({
-        content: `操作失败请联系管理员,${err.message ? err.message : err}`,
-
+        content: `操作失败请联系管理员,${err.message ? err.message : err}`
       })
-    }).finally(() => {
-      row.submitLoading = false;
-    });
-  } else {
-    if (i && i > 2) {
-      message.error(`出库数量不能为空!`)
-    } else {
-      setTimeout(() => {
-        deliveryFromStorage(row, i + 1);
-      }, 300);
-    }
-  }
+    })
+    .finally(() => {
+      tableLoading.value = false
+    })
 }
 // endregion
-
 
 // region 用户操作
 
@@ -115,22 +80,23 @@ const loginUser = ref()
  * 退出登录
  */
 function logout() {
-  humanLogout(userName.value, localStorage.equipmentCode).then(({ data }: any) => {
-    if (data.code == 200) {
-      loginUser.value = ''
-      localStorage.clear();
-      location.reload();
-    } else {
-      message.error({
-        content: `操作失败请联系管理员${data.msg}`,
-      })
-    }
-  }).catch((err) => {
-    message.error({
-      content: `操作失败请联系管理员,${err.message ? err.message : err}`,
-
+  humanLogout(userName.value, localStorage.equipmentCode)
+    .then(({ data }: any) => {
+      if (data.code == 200) {
+        loginUser.value = ''
+        localStorage.clear()
+        location.reload()
+      } else {
+        message.error({
+          content: `操作失败请联系管理员${data.msg}`
+        })
+      }
     })
-  })
+    .catch((err) => {
+      message.error({
+        content: `操作失败请联系管理员,${err.message ? err.message : err}`
+      })
+    })
 }
 
 // endregion
@@ -150,41 +116,28 @@ onMounted(() => {
         title="是否确认退出登录?"
         @confirm="logout"
       >
-        <a-button style="position:absolute; right: 1em;" type="primary"> 退出登录</a-button>
+        <a-button style="position: absolute; right: 1em" type="primary"> 退出登录</a-button>
       </a-popconfirm>
     </div>
     <!--region 查询条件 -->
     <a-form layout="inline">
-      <a-form-item label="库位" name="warehouseCode" v-if="equipmentName?.includes('打包')">
-        <a-select
-          v-model:value="queryParams.warehouseCode"
-          style="width: 120px"
-          placeholder="请选择库位代码"
-        >
-          <a-select-option value="PG01">P1</a-select-option>
-          <a-select-option value="PG02">P3</a-select-option>
-          <a-select-option value="PG03">P5</a-select-option>
-          <a-select-option value="PG04">湿磨1</a-select-option>
-          <a-select-option value="PG05">湿磨2</a-select-option>
-        </a-select>
+      <a-form-item label="储位" name="warehouseCode">
+        <a-input v-model:value="queryParams.areaCode" placeholder="请输入库位代码" />
+      </a-form-item>
+      <a-form-item label="库位" name="warehouseCode">
+        <a-input v-model:value="queryParams.warehouseCode" placeholder="请输入库位代码" />
       </a-form-item>
       <a-form-item label="料号" name="productCode">
-        <a-input
-          v-model:value="queryParams.productCode"
-          placeholder="请输入料号"
-        />
+        <a-input v-model:value="queryParams.productCode" placeholder="请输入料号" />
       </a-form-item>
       <a-form-item label="产品名称" name="productName">
-        <a-input
-          v-model:value="queryParams.productName"
-          placeholder="请输入产品名称"
-        />
+        <a-input v-model:value="queryParams.productName" placeholder="请输入产品名称" />
       </a-form-item>
       <a-form-item label="批次号" name="batchCode">
-        <a-input
-          v-model:value="queryParams.batchCode"
-          placeholder="请输入批次号"
-        />
+        <a-input v-model:value="queryParams.batchCode" placeholder="请输入批次号" />
+      </a-form-item>
+      <a-form-item label="工单号" name="workstationCode">
+        <a-input v-model:value="queryParams.worksheetCode" placeholder="请输入工单号" />
       </a-form-item>
 
       <a-form-item label="">
@@ -210,12 +163,20 @@ onMounted(() => {
         height="300"
       >
         <vxe-column type="seq" width="60"></vxe-column>
-        <vxe-column field="batchCode" min-width="140" title="批次号"></vxe-column>
-        <vxe-column field="productCode" min-width="180" title="产品编号"></vxe-column>
-        <vxe-column field="productName" min-width="180" title="产品名称"></vxe-column>
-        <vxe-column field="stockNumber" min-width="120" title="库存量"></vxe-column>
+        <vxe-column field="materialCode" min-width="140" title="料号"></vxe-column>
+        <vxe-column field="materialName" min-width="180" title="物料名称"></vxe-column>
+        <vxe-column field="batchCode" min-width="180" title="批次号"></vxe-column>
+        <vxe-column field="warehouseCode" min-width="120" title="库位号"></vxe-column>
+        <vxe-column field="areaCode" min-width="120" title="储位号"></vxe-column>
+        <vxe-column field="stockQuality" min-width="120" title="库存量"></vxe-column>
         <vxe-column field="unit" min-width="120" title="单位"></vxe-column>
       </vxe-table>
+      <vxe-pager
+        v-model:currentPage="pageNumber"
+        v-model:pageSize="pageSize"
+        :total="total"
+        @page-change="query">
+      </vxe-pager>
     </div>
     <!-- endregion -->
   </div>
@@ -232,7 +193,7 @@ onMounted(() => {
     margin: 1em 0;
 
     & > * {
-      margin: 0 .5em;
+      margin: 0 0.5em;
     }
   }
 
@@ -259,7 +220,7 @@ onMounted(() => {
 
       &:after {
         content: ':';
-        margin-left: .5em;
+        margin-left: 0.5em;
       }
     }
 
@@ -277,5 +238,4 @@ onMounted(() => {
     margin-bottom: 1em;
   }
 }
-
 </style>
