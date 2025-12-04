@@ -855,7 +855,7 @@ onMounted(() => {
                     addon-after="㎡"
                     :min="0"
                     v-if="unitMessage === '片'"
-                    style="margin-top: 1em"
+                    style="margin-top: 1em; width: 100%"
                     readonly
                   />
                 </a-form-item>
@@ -890,7 +890,7 @@ onMounted(() => {
                     addon-after="㎡"
                     :min="0"
                     v-if="unitMessage === '片'"
-                    style="margin-top: 1em"
+                    style="margin-top: 1em; width: 100%"
                     readonly
                   />
                 </a-form-item>
@@ -921,7 +921,7 @@ onMounted(() => {
                     addon-after="㎡"
                     :min="0"
                     v-if="unitMessage === '片'"
-                    style="margin-top: 1em"
+                    style="margin-top: 1em; width: 100%"
                     readonly
                   />
                 </a-form-item>
@@ -1021,7 +1021,7 @@ onMounted(() => {
                   addon-after="㎡"
                   :min="0"
                   v-if="unitMessage === '片'"
-                  style="margin-top: 1em"
+                  style="margin-top: 1em; width: 100%"
                   readonly
                 />
               </a-form-item>
@@ -1056,7 +1056,7 @@ onMounted(() => {
                   addon-after="㎡"
                   :min="0"
                   v-if="unitMessage === '片'"
-                  style="margin-top: 1em"
+                  style="margin-top: 1em; width: 100%"
                   readonly
                 />
               </a-form-item>
@@ -1091,7 +1091,7 @@ onMounted(() => {
                   addon-after="㎡"
                   :min="0"
                   v-if="unitMessage === '片'"
-                  style="margin-top: 1em"
+                  style="margin-top: 1em; width: 100%"
                   readonly
                 />
               </a-form-item>

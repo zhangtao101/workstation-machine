@@ -619,34 +619,57 @@ function init() {
     tableData.value = JSON.parse(data);
   } else {
     loading.value = true;
-    let ob: any;
     if (prop.workstationMessage?.workstationName.includes('制粉') ) {
-      ob = getZFBomMaterialListByCode(prop.workstationMessage?.workstationCode, prop.sheetMessage?.workSheetCode)
-    } else {
-      ob = getBomMaterialListByCode(prop.workstationMessage?.workstationCode, prop.sheetMessage?.workSheetCode)
-    }
-    ob.then(({ data: {code, data, msg} }: any) => {
-      if (code == 200) {
-        const arr: any[] = [];
-        data.forEach((item: any) =>{
-          item.notEdit = true;
-          arr.push({
-            ...item,
-            notEdit: true,
-          })
-        })
-        tableData.value = arr;
-      } else {
-        message.error(`操作失败请联系管理员${msg}`)
-      }
-    }).catch((err: any) => {
-      message.error({
-      content: `操作失败请联系管理员,${err.message ? err.message : err}`,
+      getZFBomMaterialListByCode(prop.workstationMessage?.workstationCode, prop.sheetMessage?.workSheetCode).then(({ data: {code, data: { list }, msg} }: any) => {
+        if (code == 200) {
+          const arr: any[] = [];
+          if (list && list.length > 0) {
+            list.forEach((item: any) =>{
+              item.notEdit = true;
+              arr.push({
+                ...item,
+                notEdit: true,
+              })
+            })
+          }
+          tableData.value = arr;
+        } else {
+          message.error(`操作失败请联系管理员${msg}`)
+        }
+      }).catch((err: any) => {
+        message.error({
+          content: `操作失败请联系管理员,${err.message ? err.message : err}`,
 
-    })
-    }).finally(() => {
-      loading.value = false;
-    });
+        })
+      }).finally(() => {
+        loading.value = false;
+      });
+    } else {
+      getBomMaterialListByCode(prop.workstationMessage?.workstationCode, prop.sheetMessage?.workSheetCode).then(({ data: {code, data, msg} }: any) => {
+        if (code == 200) {
+          const arr: any[] = [];
+          if (data && data.length > 0) {
+            data.forEach((item: any) =>{
+              item.notEdit = true;
+              arr.push({
+                ...item,
+                notEdit: true,
+              })
+            })
+          }
+          tableData.value = arr;
+        } else {
+          message.error(`操作失败请联系管理员${msg}`)
+        }
+      }).catch((err: any) => {
+        message.error({
+          content: `操作失败请联系管理员,${err.message ? err.message : err}`,
+
+        })
+      }).finally(() => {
+        loading.value = false;
+      });
+    }
   }
 }
 onMounted(() => {
